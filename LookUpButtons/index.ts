@@ -97,7 +97,9 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     }
 
     private onButtonClick(entity: { id: string; name: string; entityType: string }): void {
-        const modal = document.createElement("div");
+        const modal = document.createElement('div');
+        modal.className = 'modal-backdrop fade show';
+        document.body.appendChild(modal);
         modal.className = "modal fade show";
         modal.style.display = "block";
         modal.style.position = "fixed";
