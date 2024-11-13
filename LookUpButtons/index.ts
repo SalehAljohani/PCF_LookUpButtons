@@ -15,7 +15,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         this._context = context;
         this._notifyOutputChanged = notifyOutputChanged;
         this._container = document.createElement("div");
-        this._container.className = "bootstrap-scope d-flex flex-wrap gap-2";
+        this._container.className = "d-flex flex-wrap gap-2";
         container.appendChild(this._container);
         this.loadLookupData();
     }

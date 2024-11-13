@@ -1,0 +1,17 @@
+// Core configuration (required for Bootstrap components to work)
+@import "../node_modules/bootstrap/scss/functions";
+@import "../node_modules/bootstrap/scss/variables";
+@import "../node_modules/bootstrap/scss/mixins";
+
+// Optional layout resets and typography
+@import "../node_modules/bootstrap/scss/reboot"; // For browser consistency
+@import "../node_modules/bootstrap/scss/type";   // For basic typography
+
+// Essential components for your PCF component
+@import "../node_modules/bootstrap/scss/buttons";
+@import "../node_modules/bootstrap/scss/alert";
+@import "../node_modules/bootstrap/scss/modal";
+
+// Required dependencies for modal functionality
+@import "../node_modules/bootstrap/scss/transitions"; // For modal fade effects
+@import "../node_modules/bootstrap/scss/close";       // For modal close button styling
