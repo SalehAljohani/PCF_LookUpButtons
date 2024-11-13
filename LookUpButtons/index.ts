@@ -1,8 +1,5 @@
 import { IInputs, IOutputs } from "./generated/ManifestTypes";
-import "bootstrap/dist/css/bootstrap-buttons.min.css"; // Button styles 
-import "bootstrap/dist/css/bootstrap-alerts.min.css";  // Alert styles
-import "bootstrap/dist/css/bootstrap-modal.min.css";   // Modal styles
-import "bootstrap/dist/js/bootstrap.bundle.min.js";
+// import "bootstrap/dist/css/bootstrap.min.css";
 
 export class ButtonLookup implements ComponentFramework.StandardControl<IInputs, IOutputs> {
     private _container: HTMLDivElement;
