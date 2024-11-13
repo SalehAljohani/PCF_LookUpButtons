@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <control namespace="Netways.KAFD" constructor="ButtonLookup" version="0.0.1" display-name-key="PCF Lookup as Buttons" description-key="Shows lookup options as buttons" control-type="standard">
+    <external-service-usage enabled="false">
+    </external-service-usage>
+    <property name="lookupField" display-name-key="Lookup_Field" description-key="Field to bind lookup" of-type="Lookup.Simple" usage="bound" required="true" />
+    <property name="status" display-name-key="Status_Field" description-key="Select the status lookup field" of-type="Lookup.Simple" usage="bound" required="false"/>
+    <resources>
+      <code path="index.ts" order="1"/>
+      <css path="css/ButtonLookup.css" order="2" />
+    </resources>
+    <feature-usage>
+      <uses-feature name="WebAPI" required="true" />
+    </feature-usage>
+  </control>
+</manifest>
