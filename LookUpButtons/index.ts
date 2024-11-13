@@ -97,9 +97,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     }
 
     private onButtonClick(entity: { id: string; name: string; entityType: string }): void {
-        const modal = document.createElement('div');
-        modal.className = 'modal-backdrop fade show';
-        document.body.appendChild(modal);
+        const modal = document.createElement("div");
         modal.className = "modal fade show";
         modal.style.display = "block";
         modal.style.position = "fixed";
@@ -110,27 +108,23 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         modal.style.backgroundColor = "rgba(0,0,0,0.5)";
         modal.style.zIndex = "1050";
 
-        modal.innerHTML =
-            `
-            <div class="modal fade show" tabindex = "-1" >
-                <div class="modal-dialog" >
-                    <div class="modal-content" >
-                        <div class="modal-header" >
-                            <h5 class="modal-title" > Confirm Action </h5>
-                                < button type = "button" class="btn-close" data - bs - dismiss="modal" > </button>
-                        </div>
-                        < div class="modal-body" >
-                            <p>Are you sure you want to select < span class="text-uppercase fw-bold" > "${entity.name}" < /span>?</p >
-                        </div>
-                        < div class="modal-footer" >
-                            <button type="button" class="btn btn-secondary" data - bs - dismiss="modal" > Cancel </button>
-                            < button type = "button" class="btn btn-success" > Confirm </button>
-                        </div>
+        modal.innerHTML = `
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirm Action</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to select <span class="text-uppercase fw-bold">"${entity.name}"</span>?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-success">Confirm</button>
                     </div>
                 </div>
             </div>
-            `
-            ;
+        `;
 
         const closeButton = modal.querySelector('[data-bs-dismiss="modal"]');
         const confirmButton = modal.querySelector('.btn-success');
