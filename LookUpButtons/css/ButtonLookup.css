@@ -1,5 +1,5 @@
 /* Button styles */
-.bootstrap-scope .btn {
+.btn {
     display: inline-block;
     font-weight: 400;
     text-align: center;
@@ -12,42 +12,44 @@
     transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
 }
 
-.bootstrap-scope .btn-outline-success {
+.btn-outline-success {
     color: #198754;
     border-color: #198754;
     background-color: transparent;
 }
 
-.bootstrap-scope .btn-outline-success:hover {
+.btn-outline-success:hover {
     color: #fff;
     background-color: #198754;
     border-color: #198754;
 }
 
-.bootstrap-scope .btn-primary {
+.btn-primary {
     color: #fff;
     background-color: #007bff;
     border-color: #007bff;
 }
 
-.bootstrap-scope .btn-primary:hover {
+.btn-primary:hover {
     background-color: #0056b3;
     border-color: #004085;
 }
 
-.bootstrap-scope .btn-close {
+.btn-close {
     background: transparent;
     border: none;
     font-size: 1.25rem;
     cursor: pointer;
 }
 
-.bootstrap-scope .m-1 {
+.m-1 {
     margin: 0.25rem !important;
 }
 
+
 /* Alert styles */
-.bootstrap-scope .alert {
+
+.alert {
     position: relative;
     padding: 0.75rem 1.25rem;
     margin-bottom: 1rem;
@@ -56,30 +58,32 @@
     width: 100%;
 }
 
-.bootstrap-scope .alert-info {
+.alert-info {
     color: #084298;
     background-color: #cfe2ff;
     border-color: #b6d4fe;
 }
 
-.bootstrap-scope .alert-warning {
+.alert-warning {
     color: #856404;
     background-color: #fff3cd;
     border-color: #ffeeba;
 }
 
-.bootstrap-scope .alert-danger {
+.alert-danger {
     color: #721c24;
     background-color: #f8d7da;
     border-color: #f5c6cb;
 }
 
-.bootstrap-scope .w-100 {
+.w-100 {
     width: 100% !important;
 }
 
+
 /* Modal styles */
-.bootstrap-scope .modal {
+
+.modal {
     display: block;
     position: fixed;
     top: 0;
@@ -90,14 +94,14 @@
     z-index: 1050;
 }
 
-.bootstrap-scope .modal-dialog {
+.modal-dialog {
     position: relative;
     width: auto;
     margin: 1.75rem auto;
     max-width: 500px;
 }
 
-.bootstrap-scope .modal-content {
+.modal-content {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -108,7 +112,7 @@
     outline: 0;
 }
 
-.bootstrap-scope .modal-header, .bootstrap-scope .modal-footer {
+.modal-header, .modal-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -116,17 +120,17 @@
     border-bottom: 1px solid #dee2e6;
 }
 
-.bootstrap-scope .modal-header {
+.modal-header {
     border-bottom: 1px solid #dee2e6;
 }
 
-.bootstrap-scope .modal-title {
+.modal-title {
     margin-bottom: 0;
     line-height: 1.5;
     font-size: 1.25rem;
 }
 
-.bootstrap-scope .modal-body {
+.modal-body {
     position: relative;
     flex: 1 1 auto;
     padding: 1rem;
