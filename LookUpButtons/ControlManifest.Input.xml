@@ -7,7 +7,7 @@
     <property name="status" display-name-key="Status_Field" description-key="Select the status lookup field" of-type="Lookup.Simple" usage="bound" required="false"/>
     <resources>
       <code path="index.ts" order="1"/>
-      <css path="css/ButtonLookup.css" order="2" />
+      <css path="css/custom-bootstrap.min.css" order="2" />
     </resources>
     <feature-usage>
       <uses-feature name="WebAPI" required="true" />

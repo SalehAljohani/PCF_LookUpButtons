@@ -1,5 +1,4 @@
 import { IInputs, IOutputs } from "./generated/ManifestTypes";
-// import "bootstrap/dist/css/bootstrap.min.css";
 
 export class ButtonLookup implements ComponentFramework.StandardControl<IInputs, IOutputs> {
     private _container: HTMLDivElement;
@@ -117,7 +116,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <p>Are you sure you want to select <p class="text-uppercase fw-bold">"${entity.name}"</p>?</p>
+                        <p>Are you sure you want to select <span class="text-uppercase fw-bold">"${entity.name}"</span>?</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
