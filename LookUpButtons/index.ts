@@ -98,37 +98,34 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
     private onButtonClick(entity: { id: string; name: string; entityType: string }): void {
         const modal = document.createElement("div");
-        modal.className = "modal fade show";
-        modal.style.display = "block";
-        modal.style.position = "fixed";
-        modal.style.top = "0";
-        modal.style.left = "0";
-        modal.style.width = "100%";
-        modal.style.height = "100%";
-        modal.style.backgroundColor = "rgba(0,0,0,0.5)";
-        modal.style.zIndex = "1050";
-
+        modal.className = "modal";
+    
         modal.innerHTML = `
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Confirm Action</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <h5 class="modal-title"><strong>Confirm Action</strong></h5>
+                        <button type="button" class="btn-close" data-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <p>Are you sure you want to select <span class="text-uppercase fw-bold">"${entity.name}"</span>?</p>
+                        <p>Are you sure you want to select <strong>"${entity.name}"</strong>?</p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                         <button type="button" class="btn btn-success">Confirm</button>
                     </div>
                 </div>
             </div>
         `;
-
-        const closeButton = modal.querySelector('[data-bs-dismiss="modal"]');
+    
+        const closeButton = modal.querySelector('[data-dismiss="modal"]');
         const confirmButton = modal.querySelector('.btn-success');
         const cancelButton = modal.querySelector('.btn-secondary');
+    
+        const closeModal = () => {
+            modal.remove();
+        };
+    
 
         closeButton?.addEventListener('click', () => modal.remove());
         cancelButton?.addEventListener('click', () => modal.remove());
