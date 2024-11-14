@@ -5,6 +5,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     private _context: ComponentFramework.Context<IInputs>;
     private _notifyOutputChanged: () => void;
     private _isLoading: boolean = false;
+    //test
 
     public init(
         context: ComponentFramework.Context<IInputs>,
