@@ -122,11 +122,6 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         const confirmButton = modal.querySelector('.btn-success');
         const cancelButton = modal.querySelector('.btn-secondary');
     
-        const closeModal = () => {
-            modal.remove();
-        };
-    
-
         closeButton?.addEventListener('click', () => modal.remove());
         cancelButton?.addEventListener('click', () => modal.remove());
         confirmButton?.addEventListener('click', () => {
