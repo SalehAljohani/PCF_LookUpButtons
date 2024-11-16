@@ -39,7 +39,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
             const loadingMessage = this.showMessage("Loading...", "info");
 
-            const query = `?$select=${targetedEntity}id,ntw_name, ntw_nextstatusid & $filter=_ntw_statusid_value eq ${statusValue[0].id}`;
+            const query = `?$select=${targetedEntity}id,ntw_name & $filter=_ntw_statusid_value eq ${statusValue[0].id}`;
             const response = await this._context.webAPI.retrieveMultipleRecords(targetedEntity, query, 40);
 
             this.removeMessage(loadingMessage);
