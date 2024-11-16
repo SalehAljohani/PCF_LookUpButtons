@@ -98,30 +98,32 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
     private onButtonClick(entity: { id: string; name: string; entityType: string }): void {
         const modal = document.createElement("div");
-        modal.className = "modal";
+        modal.className = "modal fade show";
+        modal.style.display = "block";
+        modal.style.backgroundColor = "rgba(0, 0, 0, 0.5)";        
     
         modal.innerHTML = `
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title"><strong>Confirm Action</strong></h5>
-                        <button type="button" class="btn-close" data-dismiss="modal"></button>
+                            <button type="button" class="btn-close" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p>Are you sure you want to select <strong>"${entity.name}"</strong>?</p>
+                        <p>Are you sure you want to select <span class="fw-bold text-uppercase">${entity.name}</span>?</p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-secondary">Cancel</button>
                         <button type="button" class="btn btn-success">Confirm</button>
                     </div>
                 </div>
             </div>
         `;
     
-        const closeButton = modal.querySelector('[data-dismiss="modal"]');
-        const confirmButton = modal.querySelector('.btn-success');
-        const cancelButton = modal.querySelector('.btn-secondary');
-    
+        const closeButton = modal.querySelector(".btn-close");
+        const cancelButton = modal.querySelector(".btn-secondary");
+        const confirmButton = modal.querySelector(".btn-success");
+
         closeButton?.addEventListener('click', () => modal.remove());
         cancelButton?.addEventListener('click', () => modal.remove());
         confirmButton?.addEventListener('click', () => {
