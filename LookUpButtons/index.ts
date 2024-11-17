@@ -39,7 +39,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
             const loadingMessage = this.showMessage("Loading...", "info");
 
-            const query = `?$select=${targetedEntity}id,ntw_name&$filter=_ntw_statusid_value eq ${statusValue[0].id}`;
+            const query = `?$select=${targetedEntity}id,ntw_name,_ntw_nextstatusid_value&$filter=_ntw_statusid_value eq ${statusValue[0].id}`;
             const response = await this._context.webAPI.retrieveMultipleRecords(targetedEntity, query, 40);
 
             this.removeMessage(loadingMessage);
@@ -52,6 +52,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             const entities = response.entities.map(entity => ({
                 id: entity[`${targetedEntity}id`] || entity.id,
                 name: entity.ntw_name || "Unnamed Record",
+                nextStatusId: entity._ntw_nextstatusid_value,
                 entityType: targetedEntity
             }));
 
@@ -78,7 +79,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         }
     }
 
-    private displayButtons(entities: { id: string; name: string; entityType: string }[]): void {
+    private displayButtons(entities: { id: string; name: string; nextStatusId: string; entityType: string }[]): void {
         this._container.innerHTML = "";
 
         if (!entities || entities.length === 0) {
@@ -96,54 +97,65 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         });
     }
 
-    private onButtonClick(entity: { id: string; name: string; entityType: string }): void {
-        const modal = document.createElement("div");
-        modal.className = "modal fade show";
-        modal.style.display = "block";
-        modal.style.backgroundColor = "rgba(0, 0, 0, 0.5)";        
-    
-        modal.innerHTML = `
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title"><strong>Confirm Action</strong></h5>
-                            <button type="button" class="btn-close" aria-label="Close"></button>
+    private onButtonClick(entity: { id: string; name: string; nextStatusId: string; entityType: string; }): void {
+        const query = `?$select=ntw_name`;
+        this._context.webAPI.retrieveRecord("ntw_status", entity.nextStatusId, query)
+            .then((response) => {
+                const nextStatusName = response.ntw_name || "Next Status";
+                
+                const modal = document.createElement("div");
+                modal.className = "modal fade show";
+                modal.style.display = "block";
+                modal.style.backgroundColor = "rgba(0, 0, 0, 0.5)";        
+            
+                modal.innerHTML = `
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title"><strong>Confirm Action</strong></h5>
+                                <button type="button" class="btn-close" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Are you sure you want to select <span class="fw-bold text-uppercase">${entity.name}</span>?</p>
+                                <p>This will move the status to: <span class="fw-bold text-primary">${nextStatusName}</span></p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary">Cancel</button>
+                                <button type="button" class="btn btn-success">Confirm</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="modal-body">
-                        <p>Are you sure you want to select <span class="fw-bold text-uppercase">${entity.name}</span>?</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary">Cancel</button>
-                        <button type="button" class="btn btn-success">Confirm</button>
-                    </div>
-                </div>
-            </div>
-        `;
-    
-        const closeButton = modal.querySelector(".btn-close");
-        const cancelButton = modal.querySelector(".btn-secondary");
-        const confirmButton = modal.querySelector(".btn-success");
+                `;
+            
+                const closeButton = modal.querySelector(".btn-close");
+                const cancelButton = modal.querySelector(".btn-secondary");
+                const confirmButton = modal.querySelector(".btn-success");
 
-        closeButton?.addEventListener('click', () => modal.remove());
-        cancelButton?.addEventListener('click', () => modal.remove());
-        confirmButton?.addEventListener('click', () => {
-            try {
-                const lookupValue: ComponentFramework.LookupValue = {
-                    entityType: entity.entityType,
-                    id: entity.id,
-                    name: entity.name
-                };
-                this._context.parameters.lookupField.raw = [lookupValue];
-                this._notifyOutputChanged();
-                modal.remove();
-            } catch (error) {
-                console.error("Error setting lookup value:", error);
-                this.showMessage("Failed to set selection", "danger");
-                modal.remove();
-            }
-        });
+                closeButton?.addEventListener('click', () => modal.remove());
+                cancelButton?.addEventListener('click', () => modal.remove());
+                confirmButton?.addEventListener('click', () => {
+                    try {
+                        const lookupValue: ComponentFramework.LookupValue = {
+                            entityType: entity.entityType,
+                            id: entity.id,
+                            name: entity.name
+                        };
+                        this._context.parameters.lookupField.raw = [lookupValue];
+                        this._notifyOutputChanged();
+                        modal.remove();
+                    } catch (error) {
+                        console.error("Error setting lookup value:", error);
+                        this.showMessage("Failed to set selection", "danger");
+                        modal.remove();
+                    }
+                });
 
-        document.body.appendChild(modal);
+                document.body.appendChild(modal);
+            })
+            .catch(error => {
+                console.error("Error retrieving next status:", error);
+                this.showMessage("Failed to load next status details", "danger");
+            });
     }
 
     public updateView(context: ComponentFramework.Context<IInputs>): void {
