@@ -169,8 +169,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                                 EntityId: "5b0af552-2096-ef11-aa20-00155d00be1e",
                             };
                             var requestUrl =
-                                this._context.events.getWebAPIPath() +
-                                "/api/data/v9.0/workflows(" +
+                                "https://kafdcrm365.netways1.com/api/data/v9.0/workflows(" +
                                 executeWorkflowRequest.entity.id +
                                 ")/Microsoft.Dynamics.CRM.ExecuteWorkflow";
                             console.log("Request URL:", requestUrl);
