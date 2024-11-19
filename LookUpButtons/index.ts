@@ -67,7 +67,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
     private showMessage(message: string, type: 'success' | 'info' | 'danger' | 'warning'): HTMLDivElement {
         const messageDiv = document.createElement("div");
-        messageDiv.className = `alert alert-${type} w-100`;
+        messageDiv.className = `alert alert-${type} w-50 mx-auto text-center`;
         messageDiv.innerText = message;
         this._container.appendChild(messageDiv);
         return messageDiv;
@@ -106,7 +106,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 const nextStatusName = response.ntw_name || "Next Status";
                 const workflowId = response._ntw_workflowid_value;
                 const caseId = this._context.parameters.caseId.formatted || "";
-                
+
                 //showing result for testing purposes (delete me)
                 console.log("Next status: ", nextStatusName, " Workflow ID: ", workflowId, " Case ID: ", caseId);
                 //end of testing code (delete end here)
@@ -144,48 +144,63 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 confirmButton?.addEventListener('click', () => {
                     try {
                         // old code:
-                        const lookupValue: ComponentFramework.LookupValue = {
-                            entityType: entity.entityType,
-                            id: entity.id,
-                            name: entity.name
-                        };
-                        this._context.parameters.lookupField.raw = [lookupValue];
-                        // cancelButton?.remove();
-                        // confirmButton.setAttribute("disabled", "true");
-                        // confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
-                        //make it wait for 3 sec then remove the modal for testing purposes (delete me)
-                        setTimeout(() => {
-                            cancelButton?.remove();
-                            confirmButton.setAttribute("disabled", "true");
-                            confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';    
-                        }, 3000);
-                        modal.remove();
-                        this.showMessage("Action Completed", "success");
-                        //end of testing code (delete end here)
+                        // const lookupValue: ComponentFramework.LookupValue = {
+                        //     entityType: entity.entityType,
+                        //     id: entity.id,
+                        //     name: entity.name
+                        // };
+                        // this._context.parameters.lookupField.raw = [lookupValue];
 
-                        this._notifyOutputChanged();
-                        // modal.remove();
-
-                        // new code:
-                        // cancelButton?.remove();
-                        // confirmButton.setAttribute("disabled", "true");
-                        // confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
-                        // //make it wait for 3 sec then remove the modal for testing purposes (delete me)
-                        // setTimeout(() => {
-                        //     modal.remove();
-                        //     this.showMessage("Action Completed!!", "info");
-                        // }, 3000);
-                        // if (workflowId) {
-                        //     const workflowUrl = `/api/data/v9.2/workflows(${workflowId})/Microsoft.Dynamics.CRM.ExecuteWorkflow`;
-                        //     const payload = {
-
-                        //     };
-                        // } else {
-                        //     modal.remove();
-                        //     this.showMessage("Something went wrong, contact system administartor!", "danger");
-                        // }
+                        // this._notifyOutputChanged();
                         // modal.remove();
                         // this.showMessage("Action Completed", "success");
+
+                        // new code:
+                        cancelButton?.remove();
+                        confirmButton.setAttribute("disabled", "true");
+                        confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+
+                        if (workflowId && caseId) {
+                            var executeWorkflowRequest = {
+                                entity: {
+                                    entityType: "workflow",
+                                    id: "02e924ae-cf62-446e-8b0d-97e9dafa3923",
+                                },
+                                EntityId: "5b0af552-2096-ef11-aa20-00155d00be1e",
+                            };
+                            var requestUrl =
+                                this._context.events.getWebAPIPath() +
+                                "/api/data/v9.0/workflows(" +
+                                executeWorkflowRequest.entity.id +
+                                ")/Microsoft.Dynamics.CRM.ExecuteWorkflow";
+                            console.log("Request URL:", requestUrl);
+                            var payload = {
+                                EntityId: executeWorkflowRequest.EntityId,
+                            };
+                            var req = new XMLHttpRequest();
+
+                            req.open("POST", requestUrl, true);
+                            req.setRequestHeader("Accept", "application/json");
+                            req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+                            req.setRequestHeader("OData-MaxVersion", "4.0");
+                            req.setRequestHeader("OData-Version", "4.0");
+
+                            req.onreadystatechange = function () {
+                                if (req.readyState === 4 /* complete */) {
+                                    if (req.status === 200 || req.status === 204) {
+                                        console.log("Workflow executed successfully.");
+                                    } else {
+                                        console.error("Error executing workflow: " + req.responseText);
+                                    }
+                                }
+                            };
+                            req.send(JSON.stringify(payload));
+                        } else {
+                            modal.remove();
+                            this.showMessage("Something went wrong, contact system administartor!", "danger");
+                        }
+                        modal.remove();
+                        this.showMessage("Action Completed", "success");
                     } catch (error) {
                         console.error("Error setting lookup value:", error);
                         this.showMessage("Failed to set selection", "danger");
