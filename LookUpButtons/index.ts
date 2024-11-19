@@ -5,7 +5,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     private _context: ComponentFramework.Context<IInputs>;
     private _notifyOutputChanged: () => void;
     private _isLoading: boolean = false;
-    
+
     public init(
         context: ComponentFramework.Context<IInputs>,
         notifyOutputChanged: () => void,
@@ -98,16 +98,19 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     }
 
     private onButtonClick(entity: { id: string; name: string; nextStatusId: string; entityType: string; }): void {
-        const query = `?$select=ntw_name`;
+        //https://kafdcrm365.netways1.com/api/data/v9.0/ntw_statuses(bf3f3461-cb8e-ef11-aa20-00155d00be1e)?$select=_ntw_workflowid_value test api in-browser
+        const query = `?$select=ntw_name,_ntw_workflowid_value`; //retrieve workflow id to activate it later.
         this._context.webAPI.retrieveRecord("ntw_status", entity.nextStatusId, query)
             .then((response) => {
                 const nextStatusName = response.ntw_name || "Next Status";
-                
+                const workflowId = response._ntw_workflowid_value;
+                const caseId = this._context.parameters.caseId.raw;
+                console.log("Next status: ", nextStatusName, " Workflow ID: ", workflowId, " Case ID: ", caseId);
                 const modal = document.createElement("div");
                 modal.className = "modal fade show";
                 modal.style.display = "block";
-                modal.style.backgroundColor = "rgba(0, 0, 0, 0.5)";        
-            
+                modal.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+
                 modal.innerHTML = `
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -126,7 +129,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                         </div>
                     </div>
                 `;
-            
+
                 const closeButton = modal.querySelector(".btn-close");
                 const cancelButton = modal.querySelector(".btn-secondary");
                 const confirmButton = modal.querySelector(".btn-success");
@@ -135,6 +138,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 cancelButton?.addEventListener('click', () => modal.remove());
                 confirmButton?.addEventListener('click', () => {
                     try {
+                        // old code:
                         const lookupValue: ComponentFramework.LookupValue = {
                             entityType: entity.entityType,
                             id: entity.id,
@@ -142,7 +146,28 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                         };
                         this._context.parameters.lookupField.raw = [lookupValue];
                         this._notifyOutputChanged();
+                        // modal.remove();
+
+                        // new code:
+                        cancelButton?.remove();
+                        confirmButton.setAttribute("disabled", "true");
+                        confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                        //make it wait for 3 sec then remove the modal for testing purposes (delete me)
+                        setTimeout(() => {
+                            modal.remove();
+                            this.showMessage("Action Completed!!", "info");
+                        }, 3000);
+                        // if (workflowId) {
+                        //     const workflowUrl = `/api/data/v9.2/workflows(${workflowId})/Microsoft.Dynamics.CRM.ExecuteWorkflow`;
+                        //     const payload = {
+
+                        //     };
+                        // } else {
+                        //     modal.remove();
+                        //     this.showMessage("Something went wrong, contact system administartor!", "danger");
+                        // }
                         modal.remove();
+                        this.showMessage("Action Completed!!", "info");
                     } catch (error) {
                         console.error("Error setting lookup value:", error);
                         this.showMessage("Failed to set selection", "danger");

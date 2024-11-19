@@ -3,8 +3,15 @@
   <control namespace="Netways.KAFD" constructor="ButtonLookup" version="0.0.1" display-name-key="PCF Lookup as Buttons" description-key="Shows lookup options as buttons" control-type="standard">
     <external-service-usage enabled="false">
     </external-service-usage>
+     <!-- 
+    1-lookupField: is used to link the pcf component with the lookup
+    2-status: is used to retrieve the status of the case to filter the actions, might be replaced by caseId
+    3-caseId: used to tell workflow on which case the process should be performed.
+    note: using caseId can eliminate the need for status field, i can get the status from the case entity.
+     -->
     <property name="lookupField" display-name-key="Lookup_Field" description-key="Field to bind lookup" of-type="Lookup.Simple" usage="bound" required="true" />
     <property name="status" display-name-key="Status_Field" description-key="Select the status lookup field" of-type="Lookup.Simple" usage="bound" required="false"/>
+    <property name="caseId" display-name-key="Case_ID" of-type="SingleLine.Text" usage="bound" required="true" />
     <resources>
       <code path="index.ts" order="1"/>
       <css path="css/custom-bootstrap.css" order="2" />
