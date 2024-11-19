@@ -65,7 +65,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         }
     }
 
-    private showMessage(message: string, type: 'info' | 'danger' | 'warning'): HTMLDivElement {
+    private showMessage(message: string, type: 'success' | 'info' | 'danger' | 'warning'): HTMLDivElement {
         const messageDiv = document.createElement("div");
         messageDiv.className = `alert alert-${type} w-100`;
         messageDiv.innerText = message;
@@ -150,14 +150,17 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                             name: entity.name
                         };
                         this._context.parameters.lookupField.raw = [lookupValue];
-                        cancelButton?.remove();
-                        confirmButton.setAttribute("disabled", "true");
-                        confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                        // cancelButton?.remove();
+                        // confirmButton.setAttribute("disabled", "true");
+                        // confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
                         //make it wait for 3 sec then remove the modal for testing purposes (delete me)
                         setTimeout(() => {
-                            modal.remove();
-                            this.showMessage("Action Completed!!", "info");
+                            cancelButton?.remove();
+                            confirmButton.setAttribute("disabled", "true");
+                            confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';    
                         }, 3000);
+                        modal.remove();
+                        this.showMessage("Action Completed", "success");
                         //end of testing code (delete end here)
 
                         this._notifyOutputChanged();
@@ -181,8 +184,8 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                         //     modal.remove();
                         //     this.showMessage("Something went wrong, contact system administartor!", "danger");
                         // }
-                        modal.remove();
-                        this.showMessage("Action Completed!!", "info");
+                        // modal.remove();
+                        // this.showMessage("Action Completed", "success");
                     } catch (error) {
                         console.error("Error setting lookup value:", error);
                         this.showMessage("Failed to set selection", "danger");
