@@ -102,17 +102,15 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         const query = `?$select=ntw_name,_ntw_workflowid_value`; //retrieve workflow id to activate it later.
         this._context.webAPI.retrieveRecord("ntw_status", entity.nextStatusId, query)
             .then((response) => {
+
                 const nextStatusName = response.ntw_name || "Next Status";
                 const workflowId = response._ntw_workflowid_value;
-                const caseIdObject = this._context.parameters.caseId.raw;
-                const caseId = caseIdObject || "";
+                const caseId = this._context.parameters.caseId.formatted || "";
+                
+                //showing result for testing purposes (delete me)
                 console.log("Next status: ", nextStatusName, " Workflow ID: ", workflowId, " Case ID: ", caseId);
+                //end of testing code (delete end here)
 
-                const caseIdFormatted = this._context.parameters.caseId.formatted || "";
-                console.log("Formatted Case ID: ", caseIdFormatted);
-
-                const caseId_NoRaw = this._context.parameters.caseId;
-                console.log("Case ID Object: ", caseId_NoRaw);
                 const modal = document.createElement("div");
                 modal.className = "modal fade show";
                 modal.style.display = "block";
@@ -152,10 +150,6 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                             name: entity.name
                         };
                         this._context.parameters.lookupField.raw = [lookupValue];
-                        this._notifyOutputChanged();
-                        // modal.remove();
-
-                        // new code:
                         cancelButton?.remove();
                         confirmButton.setAttribute("disabled", "true");
                         confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
@@ -164,6 +158,20 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                             modal.remove();
                             this.showMessage("Action Completed!!", "info");
                         }, 3000);
+                        //end of testing code (delete end here)
+
+                        this._notifyOutputChanged();
+                        // modal.remove();
+
+                        // new code:
+                        // cancelButton?.remove();
+                        // confirmButton.setAttribute("disabled", "true");
+                        // confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                        // //make it wait for 3 sec then remove the modal for testing purposes (delete me)
+                        // setTimeout(() => {
+                        //     modal.remove();
+                        //     this.showMessage("Action Completed!!", "info");
+                        // }, 3000);
                         // if (workflowId) {
                         //     const workflowUrl = `/api/data/v9.2/workflows(${workflowId})/Microsoft.Dynamics.CRM.ExecuteWorkflow`;
                         //     const payload = {
