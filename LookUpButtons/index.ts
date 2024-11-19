@@ -104,8 +104,15 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             .then((response) => {
                 const nextStatusName = response.ntw_name || "Next Status";
                 const workflowId = response._ntw_workflowid_value;
-                const caseId = this._context.parameters.caseId.raw;
+                const caseIdObject = this._context.parameters.caseId.raw;
+                const caseId = caseIdObject || "";
                 console.log("Next status: ", nextStatusName, " Workflow ID: ", workflowId, " Case ID: ", caseId);
+
+                const caseIdFormatted = this._context.parameters.caseId.formatted || "";
+                console.log("Formatted Case ID: ", caseIdFormatted);
+
+                const caseId_NoRaw = this._context.parameters.caseId;
+                console.log("Case ID Object: ", caseId_NoRaw);
                 const modal = document.createElement("div");
                 modal.className = "modal fade show";
                 modal.style.display = "block";
