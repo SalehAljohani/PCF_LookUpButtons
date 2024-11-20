@@ -107,10 +107,6 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 const workflowId = response._ntw_workflowid_value;
                 const caseId = this._context.parameters.caseId.formatted || "";
 
-                //showing result for testing purposes (delete me)
-                console.log("Next status: ", nextStatusName, " Workflow ID: ", workflowId, " Case ID: ", caseId);
-                //end of testing code (delete end here)
-
                 const modal = document.createElement("div");
                 modal.className = "modal fade show";
                 modal.style.display = "block";
@@ -143,33 +139,33 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 cancelButton?.addEventListener('click', () => modal.remove());
                 confirmButton?.addEventListener('click', () => {
                     try {
-                        // old code:
-                        // const lookupValue: ComponentFramework.LookupValue = {
-                        //     entityType: entity.entityType,
-                        //     id: entity.id,
-                        //     name: entity.name
-                        // };
-                        // this._context.parameters.lookupField.raw = [lookupValue];
+                        // set the lookup field value:
+                        const lookupValue: ComponentFramework.LookupValue = {
+                            entityType: entity.entityType,
+                            id: entity.id,
+                            name: entity.name
+                        };
+                        this._context.parameters.lookupField.raw = [lookupValue];
 
-                        // this._notifyOutputChanged();
-                        // modal.remove();
-                        // this.showMessage("Action Completed", "success");
-
-                        // new code:
+                        // disable the buttons and show spinner while processing
                         cancelButton?.remove();
                         confirmButton.setAttribute("disabled", "true");
                         confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
 
+                        // execute the workflow
                         if (workflowId && caseId) {
                             var executeWorkflowRequest = {
                                 entity: {
                                     entityType: "workflow",
-                                    id: "02e924ae-cf62-446e-8b0d-97e9dafa3923",
+                                    id: workflowId,
                                 },
-                                EntityId: "5b0af552-2096-ef11-aa20-00155d00be1e",
+                                EntityId: caseId,
                             };
+                            // hardcoded URL will break the system on Production
+                            const baseUrl = window.location.origin;
                             var requestUrl =
-                                "https://kafdcrm365.netways1.com/api/data/v9.0/workflows(" +
+                                baseUrl +
+                                "/api/data/v9.0/workflows(" +
                                 executeWorkflowRequest.entity.id +
                                 ")/Microsoft.Dynamics.CRM.ExecuteWorkflow";
                             console.log("Request URL:", requestUrl);
@@ -185,7 +181,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                             req.setRequestHeader("OData-Version", "4.0");
 
                             req.onreadystatechange = function () {
-                                if (req.readyState === 4 /* complete */) {
+                                if (req.readyState === 4) {
                                     if (req.status === 200 || req.status === 204) {
                                         console.log("Workflow executed successfully.");
                                     } else {
@@ -199,7 +195,8 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                             this.showMessage("Something went wrong, contact system administartor!", "danger");
                         }
                         modal.remove();
-                        this.showMessage("Action Completed", "success");
+                        this.showMessage("Action completed successfully.", "success");
+
                     } catch (error) {
                         console.error("Error setting lookup value:", error);
                         this.showMessage("Failed to set selection", "danger");
