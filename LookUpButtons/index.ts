@@ -146,6 +146,8 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                             name: entity.name
                         };
                         this._context.parameters.lookupField.raw = [lookupValue];
+                        //delete me
+                        console.log("Lookup value set:", this._context.parameters.lookupField.raw);
                         this._notifyOutputChanged();
                         // disable the buttons and show spinner while processing
                         cancelButton?.remove();
