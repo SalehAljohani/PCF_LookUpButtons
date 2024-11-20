@@ -97,8 +97,8 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         });
     }
 
-    private onButtonClick(entity: { id: string; name: string; nextStatusId: string; entityType: string; }): void {
-        //https://kafdcrm365.netways1.com/api/data/v9.0/ntw_statuses(bf3f3461-cb8e-ef11-aa20-00155d00be1e)?$select=_ntw_workflowid_value test api in-browser
+    private async onButtonClick(entity: { id: string; name: string; nextStatusId: string; entityType: string; }): Promise<void> {
+
         const query = `?$select=ntw_name,_ntw_workflowid_value`; //retrieve workflow id to activate it later.
         this._context.webAPI.retrieveRecord("ntw_status", entity.nextStatusId, query)
             .then((response) => {
@@ -146,7 +146,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                             name: entity.name
                         };
                         this._context.parameters.lookupField.raw = [lookupValue];
-
+                        this._notifyOutputChanged();
                         // disable the buttons and show spinner while processing
                         cancelButton?.remove();
                         confirmButton.setAttribute("disabled", "true");
