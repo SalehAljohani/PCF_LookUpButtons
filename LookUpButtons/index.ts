@@ -188,18 +188,9 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             confirmButton?.addEventListener('click', async () => {
                 try {
                     // 1. Create and set the lookup value
-                    // const lookupValue = this.createLookupValue(entity);
-                    // this._context.parameters.lookupField.raw = [lookupValue];
-                    const logicalName = "incident";
-                    const updateData = {
-                        [this._context.parameters.lookupField.attributes!.LogicalName]: {
-                            "@odata.type": `Microsoft.Dynamics.CRM.${entity.entityType}`,
-                            "ntw_actionid": entity.id // Correct field name for the lookup field
-                        }
-                    };
-                    console.log("Update data: ", updateData);
-                    await this._context.webAPI.updateRecord(logicalName, caseId, updateData);
-                    // this._notifyOutputChanged();
+                    const lookupValue = this.createLookupValue(entity);
+                    this._context.parameters.lookupField.raw = [lookupValue];
+                    this._notifyOutputChanged();
 
                     // 2. Disable buttons and show processing state
                     cancelButton?.remove();
@@ -207,11 +198,11 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                     confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
                                         
                     // 3. Execute workflow if both workflowId and caseId are present
-                    if (workflowId && caseId) {
-                        await this.executeWorkflow(workflowId, caseId);
-                    } else {
-                        throw new Error("Workflow ID or Case ID is missing");
-                    }
+                    // if (workflowId && caseId) {
+                    //     await this.executeWorkflow(workflowId, caseId);
+                    // } else {
+                    //     throw new Error("Workflow ID or Case ID is missing");
+                    // }
 
                     // 4. Close modal and show success message
                     closeModal();
