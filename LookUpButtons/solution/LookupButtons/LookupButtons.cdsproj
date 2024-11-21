@@ -1,5 +1,43 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  
+  <PropertyGroup>
+    <SolutionXmlPath>src\Other\Solution.xml</SolutionXmlPath> <!-- Path to your Solution.xml -->
+  </PropertyGroup>
+
+  <Target Name="ExtractVersion" BeforeTargets="Build">
+    <!-- Ensure the Solution.xml file exists -->
+    <Error Condition="!Exists('$(SolutionXmlPath)')" Text="Solution.xml file not found at $(SolutionXmlPath)." />
+
+    <!-- Read the content of Solution.xml -->
+    <ReadLinesFromFile File="$(SolutionXmlPath)">
+      <Output TaskParameter="Lines" PropertyName="SolutionXmlContent" />
+    </ReadLinesFromFile>
+
+    <!-- Extract the <Version> value using a regex -->
+    <PropertyGroup>
+      <SolutionVersion>$([System.Text.RegularExpressions.Regex]::Match('$(SolutionXmlContent)', '&lt;Version&gt;([^&lt;]+)&lt;/Version&gt;').Groups[1].Value)</SolutionVersion>
+    </PropertyGroup>
+
+    <!-- Log the extracted version for debugging -->
+    <Message Text="Extracted Solution Version: $(SolutionVersion)" Importance="High" />
+  </Target>
+
+  <Target Name="RenameZipFile" AfterTargets="Build">
+    <!-- Define the original and final ZIP file paths -->
+    <PropertyGroup>
+      <OriginalZipFilePath>bin\Release\$(MSBuildProjectName).zip</OriginalZipFilePath>
+      <FinalZipFilePath>bin\Release\$(MSBuildProjectName) v$(SolutionVersion).zip</FinalZipFilePath>
+    </PropertyGroup>
+
+    <!-- Log the paths for debugging -->
+    <Message Text="Original ZIP File Path: $(OriginalZipFilePath)" Importance="High" />
+    <Message Text="Final ZIP File Path: $(FinalZipFilePath)" Importance="High" />
+
+    <!-- Rename the ZIP file if it exists -->
+    <Exec Command="if exist &quot;$(OriginalZipFilePath)&quot; move &quot;$(OriginalZipFilePath)&quot; &quot;$(FinalZipFilePath)&quot;" />
+  </Target>
+
   <PropertyGroup>
     <PowerAppsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\PowerApps</PowerAppsTargetsPath>
   </PropertyGroup>
@@ -10,22 +48,10 @@
   <PropertyGroup>
     <ProjectGuid>03a22168-fa7f-4670-a919-e473c4c1e43e</ProjectGuid>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
-    <!--Remove TargetFramework when this is available in 16.1-->
     <TargetFramework>net462</TargetFramework>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
     <SolutionRootPath>src</SolutionRootPath>
   </PropertyGroup>
-
-  <!-- 
-    Solution Packager overrides, un-comment to use: SolutionPackagerType (Managed, Unmanaged, Both)
-    Solution Localization Control, if you want to enabled localization of your solution, un-comment SolutionPackageEnableLocalization and set the value to true. - Requires use of -loc flag on Solution Clone or Sync
-  -->
-  <!--
-  <PropertyGroup>
-    <SolutionPackageType>Managed</SolutionPackageType>
-    <SolutionPackageEnableLocalization>false</SolutionPackageEnableLocalization>
-  </PropertyGroup>
-  -->
 
   <ItemGroup>
     <PackageReference Include="Microsoft.PowerApps.MSBuild.Solution" Version="1.*" />
@@ -54,5 +80,4 @@
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
   <Import Project="$(PowerAppsTargetsPath)\Microsoft.PowerApps.VisualStudio.Solution.targets" Condition="Exists('$(PowerAppsTargetsPath)\Microsoft.PowerApps.VisualStudio.Solution.targets')" />
-
 </Project>

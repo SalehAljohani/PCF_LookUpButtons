@@ -194,7 +194,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                     const updateData = {
                         [this._context.parameters.lookupField.attributes!.LogicalName]: {
                             "@odata.type": `Microsoft.Dynamics.CRM.${entity.entityType}`,
-                            "accountid": entity.id
+                            "ntw_actionid": entity.id // Correct field name for the lookup field
                         }
                     };
                     console.log("Update data: ", updateData);
