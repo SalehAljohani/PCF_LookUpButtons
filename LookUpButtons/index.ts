@@ -197,6 +197,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                             "accountid": entity.id
                         }
                     };
+                    console.log("Update data: ", updateData);
                     await this._context.webAPI.updateRecord(logicalName, caseId, updateData);
                     // this._notifyOutputChanged();
 
