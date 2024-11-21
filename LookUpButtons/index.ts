@@ -97,121 +97,138 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         });
     }
 
-    private async onButtonClick(entity: { id: string; name: string; nextStatusId: string; entityType: string; }): Promise<void> {
+    private createConfirmationModal(
+        entity: { id: string; name: string; nextStatusId: string; entityType: string },
+        nextStatusName: string
+    ): HTMLDivElement {
+        const modal = document.createElement("div");
+        modal.className = "modal fade show";
+        modal.style.display = "block";
+        modal.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
 
-        const query = `?$select=ntw_name,_ntw_workflowid_value`; //retrieve workflow id to activate it later.
-        this._context.webAPI.retrieveRecord("ntw_status", entity.nextStatusId, query)
-            .then((response) => {
-
-                const nextStatusName = response.ntw_name || "Next Status";
-                const workflowId = response._ntw_workflowid_value;
-                const caseId = this._context.parameters.caseId.formatted || "";
-
-                const modal = document.createElement("div");
-                modal.className = "modal fade show";
-                modal.style.display = "block";
-                modal.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-
-                modal.innerHTML = `
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title"><strong>Confirm Action</strong></h5>
-                                <button type="button" class="btn-close" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <p>Are you sure you want to select <span class="fw-bold text-uppercase">${entity.name}</span>?</p>
-                                <p>This will move the status to: <span class="fw-bold text-primary">${nextStatusName}</span></p>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary">Cancel</button>
-                                <button type="button" class="btn btn-success">Confirm</button>
-                            </div>
-                        </div>
+        modal.innerHTML = `
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><strong>Confirm Action</strong></h5>
+                        <button type="button" class="btn-close" aria-label="Close"></button>
                     </div>
-                `;
+                    <div class="modal-body">
+                        <p>Are you sure you want to select <span class="fw-bold text-uppercase">${entity.name}</span>?</p>
+                        <p>This will move the status to: <span class="fw-bold text-primary">${nextStatusName}</span></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary">Cancel</button>
+                        <button type="button" class="btn btn-success">Confirm</button>
+                    </div>
+                </div>
+            </div>
+        `;
 
-                const closeButton = modal.querySelector(".btn-close");
-                const cancelButton = modal.querySelector(".btn-secondary");
-                const confirmButton = modal.querySelector(".btn-success");
+        return modal;
+    }
 
-                closeButton?.addEventListener('click', () => modal.remove());
-                cancelButton?.addEventListener('click', () => modal.remove());
-                confirmButton?.addEventListener('click', () => {
-                    try {
-                        // set the lookup field value:
-                        const lookupValue: ComponentFramework.LookupValue = {
-                            entityType: entity.entityType,
-                            id: entity.id,
-                            name: entity.name
-                        };
-                        this._context.parameters.lookupField.raw = [lookupValue];
-                        //delete me
-                        console.log("Lookup value set:", this._context.parameters.lookupField.raw);
-                        this._notifyOutputChanged();
-                        // disable the buttons and show spinner while processing
-                        cancelButton?.remove();
-                        confirmButton.setAttribute("disabled", "true");
-                        confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+    private createLookupValue(entity: { id: string; name: string; entityType: string }): ComponentFramework.LookupValue {
+        return {
+            entityType: entity.entityType,
+            id: entity.id,
+            name: entity.name,
+        };
+    }
 
-                        // execute the workflow
-                        if (workflowId && caseId) {
-                            var executeWorkflowRequest = {
-                                entity: {
-                                    entityType: "workflow",
-                                    id: workflowId,
-                                },
-                                EntityId: caseId,
-                            };
-                            // hardcoded URL will break the system on Production
-                            const baseUrl = window.location.origin;
-                            var requestUrl =
-                                baseUrl +
-                                "/api/data/v9.0/workflows(" +
-                                executeWorkflowRequest.entity.id +
-                                ")/Microsoft.Dynamics.CRM.ExecuteWorkflow";
-                            console.log("Request URL:", requestUrl);
-                            var payload = {
-                                EntityId: executeWorkflowRequest.EntityId,
-                            };
-                            var req = new XMLHttpRequest();
+    private executeWorkflow(workflowId: string, caseId: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const baseUrl = window.location.origin;
+            const requestUrl = `${baseUrl}/api/data/v9.0/workflows(${workflowId})/Microsoft.Dynamics.CRM.ExecuteWorkflow`;
 
-                            req.open("POST", requestUrl, true);
-                            req.setRequestHeader("Accept", "application/json");
-                            req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
-                            req.setRequestHeader("OData-MaxVersion", "4.0");
-                            req.setRequestHeader("OData-Version", "4.0");
+            const payload = { EntityId: caseId };
 
-                            req.onreadystatechange = function () {
-                                if (req.readyState === 4) {
-                                    if (req.status === 200 || req.status === 204) {
-                                        console.log("Workflow executed successfully.");
-                                    } else {
-                                        console.error("Error executing workflow: " + req.responseText);
-                                    }
-                                }
-                            };
-                            req.send(JSON.stringify(payload));
-                        } else {
-                            modal.remove();
-                            this.showMessage("Something went wrong, contact system administartor!", "danger");
-                        }
-                        modal.remove();
-                        this.showMessage("Action completed successfully.", "success");
+            const req = new XMLHttpRequest();
+            req.open("POST", requestUrl, true);
+            req.setRequestHeader("Accept", "application/json");
+            req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+            req.setRequestHeader("OData-MaxVersion", "4.0");
+            req.setRequestHeader("OData-Version", "4.0");
 
-                    } catch (error) {
-                        console.error("Error setting lookup value:", error);
-                        this.showMessage("Failed to set selection", "danger");
-                        modal.remove();
+            req.onreadystatechange = () => {
+                if (req.readyState === 4) {
+                    if (req.status === 200 || req.status === 204) {
+                        console.log("Workflow executed successfully.");
+                        resolve();
+                    } else {
+                        console.error("Error executing workflow: " + req.responseText);
+                        reject(new Error("Workflow execution failed"));
                     }
-                });
+                }
+            };
 
-                document.body.appendChild(modal);
-            })
-            .catch(error => {
-                console.error("Error retrieving next status:", error);
-                this.showMessage("Failed to load next status details", "danger");
+            req.send(JSON.stringify(payload));
+        });
+    }
+
+    private async onButtonClick(entity: { id: string; name: string; nextStatusId: string; entityType: string; }): Promise<void> {
+        try {
+            const query = `?$select=ntw_name,_ntw_workflowid_value`;
+            const response = await this._context.webAPI.retrieveRecord("ntw_status", entity.nextStatusId, query);
+
+            const nextStatusName = response.ntw_name || "Next Status";
+            const workflowId = response._ntw_workflowid_value;
+            const caseId = this._context.parameters.caseId.formatted || "";
+
+            const modal = this.createConfirmationModal(entity, nextStatusName);
+            const closeButton = modal.querySelector(".btn-close");
+            const cancelButton = modal.querySelector(".btn-secondary");
+            const confirmButton = modal.querySelector(".btn-success");
+
+            const closeModal = () => modal.remove();
+
+            closeButton?.addEventListener('click', closeModal);
+            cancelButton?.addEventListener('click', closeModal);
+
+            confirmButton?.addEventListener('click', async () => {
+                try {
+                    // 1. Create and set the lookup value
+                    // const lookupValue = this.createLookupValue(entity);
+                    // this._context.parameters.lookupField.raw = [lookupValue];
+                    const logicalName = "incident";
+                    const updateData = {
+                        [this._context.parameters.lookupField.attributes!.LogicalName]: {
+                            "@odata.type": `Microsoft.Dynamics.CRM.${entity.entityType}`,
+                            "accountid": entity.id
+                        }
+                    };
+                    await this._context.webAPI.updateRecord(logicalName, caseId, updateData);
+                    // this._notifyOutputChanged();
+
+                    // 2. Disable buttons and show processing state
+                    cancelButton?.remove();
+                    confirmButton.setAttribute("disabled", "true");
+                    confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                                        
+                    // 3. Execute workflow if both workflowId and caseId are present
+                    if (workflowId && caseId) {
+                        await this.executeWorkflow(workflowId, caseId);
+                    } else {
+                        throw new Error("Workflow ID or Case ID is missing");
+                    }
+
+                    // 4. Close modal and show success message
+                    closeModal();
+                    this.showMessage("Action completed successfully.", "success");
+
+                } catch (error) {
+                    console.error("Error processing action:", error);
+                    this.showMessage("Failed to complete action", "danger");
+                    closeModal();
+                }
             });
+
+            document.body.appendChild(modal);
+
+        } catch (error) {
+            console.error("Error retrieving next status:", error);
+            this.showMessage("Failed to load next status details", "danger");
+        }
     }
 
     public updateView(context: ComponentFramework.Context<IInputs>): void {
