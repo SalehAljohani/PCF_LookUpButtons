@@ -1,5 +1,7 @@
 import { IInputs, IOutputs } from "./generated/ManifestTypes";
 
+declare var Xrm: any;
+
 export class ButtonLookup implements ComponentFramework.StandardControl<IInputs, IOutputs> {
     private _container: HTMLDivElement;
     private _context: ComponentFramework.Context<IInputs>;
@@ -169,9 +171,8 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
     private async saveForm(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            if (this._context.mode && (this._context.mode as any).context) {
-                const formContext = (this._context.mode as any).context;
-                formContext.data.save().then(
+            if (Xrm && Xrm.Page && Xrm.Page.data && Xrm.Page.data.save) {
+                Xrm.Page.data.save().then(
                     () => resolve(),
                     (error: any) => reject(error)
                 );
@@ -179,8 +180,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 reject(new Error("Form context is not available."));
             }
         });
-    }
-    
+    }        
 
     private async onButtonClick(entity: { id: string; name: string; nextStatusId: string; entityType: string; }): Promise<void> {
         try {
