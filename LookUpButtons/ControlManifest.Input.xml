@@ -6,7 +6,7 @@
     <property name="lookupField" display-name-key="Lookup_Field" description-key="Field to bind lookup" of-type="Lookup.Simple" usage="bound" required="true" />
     <property name="status" display-name-key="Status_Field" description-key="Select the status lookup field" of-type="Lookup.Simple" usage="bound" required="false"/>
     <property name="caseId" display-name-key="Case_ID" of-type="SingleLine.Text" usage="bound" required="true" />
-    <property name="triggerValidation" display-name-key="Trigger_Validation" usage="output" of-type="SingleLine.Text" />
+    <property name="triggerValidation" display-name-key="Trigger_Validation" usage="bound" of-type="SingleLine.Text" />
     <property name="validationResult" display-name-key="Validation_Result" usage="input" of-type="TwoOptions" />
     <resources>
       <code path="index.ts" order="1"/>
