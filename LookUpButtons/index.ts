@@ -325,11 +325,11 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
 
     public updateView(context: ComponentFramework.Context<IInputs>): void {
-        // if (context.updatedProperties.includes("lookupField")) {
-        //     this.loadLookupData();
-        // }
         this._context = context;
-
+        if (context.updatedProperties.includes("lookupField")) {
+            this.loadLookupData();
+        }
+        
         // Handle validation result
         if (context.updatedProperties.includes("validationResult")) {
             this._validationResult = context.parameters.validationResult.raw || false;
