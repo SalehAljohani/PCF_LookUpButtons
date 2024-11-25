@@ -9,6 +9,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     private _validationResult: boolean = false;
     private clickState: { [key: string]: boolean } = {};
     private selectedEntity: { id: string; name: string; nextStatusId: string; entityType: string } | null = null;
+    private pendingMessage: HTMLDivElement | null = null;
 
     public init(
         context: ComponentFramework.Context<IInputs>,
@@ -25,6 +26,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     }
 
     private async loadLookupData(): Promise<void> {
+        const loadingMessage = this.showMessage("Loading...", "info");
         try {
             if (this._isLoading) return;
             this._isLoading = true;
@@ -39,7 +41,6 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             if (!statusValue || !statusValue[0]) {
                 throw new Error("Status value not found");
             }
-            const loadingMessage = this.showMessage("Loading...", "info");
 
             const query = `?$select=${targetedEntity}id,ntw_name,_ntw_nextstatusid_value&$filter=_ntw_statusid_value eq ${statusValue[0].id}`;
             const response = await this._context.webAPI.retrieveMultipleRecords(targetedEntity, query, 40);
@@ -47,7 +48,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             this.removeMessage(loadingMessage);
 
             if (!response?.entities?.length) {
-                this.showMessage("No options available", "info");
+                this.showMessage("No options available", "info", false);
                 return;
             }
 
@@ -61,17 +62,30 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             this.displayButtons(entities);
         } catch (error) {
             console.error("Technical error:", error);
-            this.showMessage("Unable to load options. Please try again later.", "warning");
+            this.removeMessage(loadingMessage);
+            this.showMessage("Unable to load options. Please try again later.", "warning", false);
         } finally {
             this._isLoading = false;
         }
     }
 
-    private showMessage(message: string, type: 'success' | 'info' | 'danger' | 'warning'): HTMLDivElement {
+    private showMessage(
+        message: string,
+        type: 'success' | 'info' | 'danger' | 'warning',
+        autoRemove: boolean = true,
+        duration: number = 5000
+    ): HTMLDivElement {
         const messageDiv = document.createElement("div");
         messageDiv.className = `alert alert-${type} w-100 mx-auto text-center`;
         messageDiv.innerText = message;
         this._container.appendChild(messageDiv);
+
+        if (autoRemove) {
+            setTimeout(() => {
+                this.removeMessage(messageDiv);
+            }, duration);
+        }
+
         return messageDiv;
     }
 
@@ -85,7 +99,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         this._container.innerHTML = "";
 
         if (!entities || entities.length === 0) {
-            this.showMessage("No records available", "info");
+            this.showMessage("No records available", "info", false);
             return;
         }
 
@@ -178,34 +192,27 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             const caseId = this._context.parameters.caseId.formatted || "";
             const actionKey = entity.id;
             if (!this.clickState[actionKey]) {
-                //first click:
-
-                // Create and set the lookup value 
+                this.pendingMessage = this.showMessage("Please fill in the required fields and click the action button again to proceed.", "info", false);
                 const lookupValue = this.createLookupValue(entity);
                 this._context.parameters.lookupField.raw = [lookupValue];
                 this._notifyOutputChanged();
-                // Set the click state to true to track first click
                 this.clickState[actionKey] = true;
                 this.selectedEntity = entity;
-
-                this.showMessage("Please fill in the required fields and click the action button again to proceed.", "info");
-
             } else {
-
-                this._triggerValidation = new Date().toISOString(); // Unique value to trigger change
+                if (this.pendingMessage) this.removeMessage(this.pendingMessage);
+                this._triggerValidation = new Date().toISOString();
                 this._notifyOutputChanged();
             }
-
         } catch (error) {
             console.error("Error retrieving next status:", error);
-            this.showMessage("Failed to load next status details", "danger");
+            this.showMessage("Failed to load next status details", "danger", false);
         }
     }
 
     private async proceedAfterValidation(): Promise<void> {
         try {
             if (!this.selectedEntity) {
-                this.showMessage("No action selected.", "warning");
+                this.showMessage("No action selected.", "warning", false);
                 return;
             }
 
@@ -217,7 +224,6 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             const workflowId = response._ntw_workflowid_value;
             const caseId = this._context.parameters.caseId.formatted || "";
 
-            // Show confirmation modal
             const modal = this.createConfirmationModal(entity, nextStatusName);
             const closeButton = modal.querySelector(".btn-close");
             const cancelButton = modal.querySelector(".btn-secondary");
@@ -230,29 +236,24 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
             confirmButton?.addEventListener('click', async () => {
                 try {
-                    // Disable buttons and show processing state
                     cancelButton?.remove();
                     confirmButton.setAttribute("disabled", "true");
                     confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
 
-                    // Execute workflow if both workflowId and caseId are present
                     if (workflowId && caseId) {
                         await this.executeWorkflow(workflowId, caseId);
                     } else {
                         throw new Error("Workflow ID or Case ID is missing");
                     }
 
-                    // Close modal and show success message
                     closeModal();
                     this.showMessage("Action completed successfully.", "success");
-
-                    // Reset click state and selected entity
                     this.clickState[entity.id] = false;
                     this.selectedEntity = null;
 
                 } catch (error) {
                     console.error("Error processing action:", error);
-                    this.showMessage("Failed to complete action", "danger");
+                    this.showMessage("Failed to complete action", "danger", false);
                     closeModal();
                 }
             });
@@ -261,10 +262,9 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
         } catch (error) {
             console.error("Error after validation:", error);
-            this.showMessage("An error occurred after validation.", "danger");
+            this.showMessage("An error occurred after validation.", "danger", false);
         }
     }
-
 
     public updateView(context: ComponentFramework.Context<IInputs>): void {
         this._context = context;
@@ -272,11 +272,9 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             this.loadLookupData();
         }
 
-        // Handle validation result
         if (context.updatedProperties.includes("validationResult")) {
             this._validationResult = context.parameters.validationResult.raw || false;
             if (this._validationResult) {
-                // Proceed with showing the confirmation modal and executing the workflow
                 this.proceedAfterValidation();
             }
         }
@@ -285,7 +283,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     public getOutputs(): IOutputs {
         return {
             lookupField: this._context.parameters.lookupField.raw,
-            triggerValidation: this._triggerValidation    
+            triggerValidation: this._triggerValidation
         };
     }
 
