@@ -196,6 +196,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 this._context.parameters.lookupField.raw = [lookupValue];
                 this._triggerValidation = new Date().toISOString(); // Set a unique trigger for validation
                 this._notifyOutputChanged();
+                this.selectedEntity = entity;
                 return; // Skip further logic
             }
 
