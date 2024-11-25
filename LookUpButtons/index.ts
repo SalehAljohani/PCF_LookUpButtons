@@ -11,12 +11,8 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     private selectedEntity: { id: string; name: string; nextStatusId: string; entityType: string } | null = null;
     private pendingMessage: HTMLDivElement | null = null;
 
-    public init(
-        context: ComponentFramework.Context<IInputs>,
-        notifyOutputChanged: () => void,
-        state: ComponentFramework.Dictionary,
-        container: HTMLDivElement
-    ): void {
+    public init(context: ComponentFramework.Context<IInputs>, notifyOutputChanged: () => void, state: ComponentFramework.Dictionary, container: HTMLDivElement): void 
+    {
         this._context = context;
         this._notifyOutputChanged = notifyOutputChanged;
         this._container = document.createElement("div");
@@ -69,12 +65,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         }
     }
 
-    private showMessage(
-        message: string,
-        type: 'success' | 'info' | 'danger' | 'warning',
-        autoRemove: boolean = true,
-        duration: number = 5000
-    ): HTMLDivElement {
+    private showMessage(message: string, type: 'success' | 'info' | 'danger' | 'warning', autoRemove: boolean = true, duration: number = 5000): HTMLDivElement {
         const messageDiv = document.createElement("div");
         messageDiv.className = `alert alert-${type} w-100 mx-auto text-center`;
         messageDiv.innerText = message;
@@ -92,6 +83,9 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     private removeMessage(element: HTMLElement): void {
         if (element && element.parentNode === this._container) {
             this._container.removeChild(element);
+            if (this.pendingMessage === element) {
+                this.pendingMessage = null;
+            }
         }
     }
 
@@ -116,13 +110,10 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
         if (existingMessage) {
             this._container.appendChild(existingMessage);
-        }    
+        }
     }
 
-    private createConfirmationModal(
-        entity: { id: string; name: string; nextStatusId: string; entityType: string },
-        nextStatusName: string
-    ): HTMLDivElement {
+    private createConfirmationModal(entity: { id: string; name: string; nextStatusId: string; entityType: string }, nextStatusName: string): HTMLDivElement {
         const modal = document.createElement("div");
         modal.className = "modal fade show";
         modal.style.display = "block";
