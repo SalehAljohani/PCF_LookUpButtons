@@ -260,7 +260,9 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                     this.showMessage("Action completed successfully.", "success");
                     this.clickState[entity.id] = false;
                     this.selectedEntity = null;
-                    location.reload();
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
 
                 } catch (error) {
                     console.error("Error processing action:", error);
