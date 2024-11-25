@@ -11,8 +11,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     private selectedEntity: { id: string; name: string; nextStatusId: string; isReasonFieldRequired: boolean; entityType: string } | null = null;
     private pendingMessage: HTMLDivElement | null = null;
 
-    public init(context: ComponentFramework.Context<IInputs>, notifyOutputChanged: () => void, state: ComponentFramework.Dictionary, container: HTMLDivElement): void 
-    {
+    public init(context: ComponentFramework.Context<IInputs>, notifyOutputChanged: () => void, state: ComponentFramework.Dictionary, container: HTMLDivElement): void {
         this._context = context;
         this._notifyOutputChanged = notifyOutputChanged;
         this._container = document.createElement("div");
@@ -189,7 +188,13 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             const workflowId = response._ntw_workflowid_value;
             const caseId = this._context.parameters.caseId.formatted || "";
             const actionKey = entity.id;
-            if (!this.clickState[actionKey] && entity.isReasonFieldRequired) {
+            if(entity.isReasonFieldRequired){
+                const lookupValue = this.createLookupValue(entity);
+                this._context.parameters.lookupField.raw = [lookupValue];
+                this._triggerValidation = new Date().toISOString();
+                this._notifyOutputChanged();
+            }
+            else if (!this.clickState[actionKey]) {
                 this.pendingMessage = this.showMessage("Please fill in the required fields and click the action button again to proceed.", "info", false);
                 const lookupValue = this.createLookupValue(entity);
                 this._context.parameters.lookupField.raw = [lookupValue];
@@ -248,6 +253,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                     this.showMessage("Action completed successfully.", "success");
                     this.clickState[entity.id] = false;
                     this.selectedEntity = null;
+                    location.reload();
 
                 } catch (error) {
                     console.error("Error processing action:", error);
