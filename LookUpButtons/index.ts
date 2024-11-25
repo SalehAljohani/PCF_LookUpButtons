@@ -188,7 +188,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             const workflowId = response._ntw_workflowid_value;
             const caseId = this._context.parameters.caseId.formatted || "";
             const actionKey = entity.id;
-            if(entity.isReasonFieldRequired){
+            if(!entity.isReasonFieldRequired){
                 const lookupValue = this.createLookupValue(entity);
                 this._context.parameters.lookupField.raw = [lookupValue];
                 this._triggerValidation = new Date().toISOString();
