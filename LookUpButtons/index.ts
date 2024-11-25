@@ -188,13 +188,19 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             const workflowId = response._ntw_workflowid_value;
             const caseId = this._context.parameters.caseId.formatted || "";
             const actionKey = entity.id;
-            if(!entity.isReasonFieldRequired){
+
+            // Case 1: If there are no fields associated with the action
+            if (!entity.isReasonFieldRequired) {
+                // Directly process the action
                 const lookupValue = this.createLookupValue(entity);
                 this._context.parameters.lookupField.raw = [lookupValue];
-                this._triggerValidation = new Date().toISOString();
+                this._triggerValidation = new Date().toISOString(); // Set a unique trigger for validation
                 this._notifyOutputChanged();
+                return; // Skip further logic
             }
-            else if (!this.clickState[actionKey]) {
+
+            // Case 2: If the action has fields associated with it
+            if (!this.clickState[actionKey]) {
                 this.pendingMessage = this.showMessage("Please fill in the required fields and click the action button again to proceed.", "info", false);
                 const lookupValue = this.createLookupValue(entity);
                 this._context.parameters.lookupField.raw = [lookupValue];
