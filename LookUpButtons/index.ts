@@ -1,6 +1,4 @@
 import { IInputs, IOutputs } from "./generated/ManifestTypes";
-//delete me
-// declare var Xrm: any;
 
 export class ButtonLookup implements ComponentFramework.StandardControl<IInputs, IOutputs> {
     private _container: HTMLDivElement;
@@ -41,8 +39,6 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             if (!statusValue || !statusValue[0]) {
                 throw new Error("Status value not found");
             }
-            console.log("Status value:", statusValue[0].id);
-
             const loadingMessage = this.showMessage("Loading...", "info");
 
             const query = `?$select=${targetedEntity}id,ntw_name,_ntw_nextstatusid_value&$filter=_ntw_statusid_value eq ${statusValue[0].id}`;
@@ -171,19 +167,6 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             req.send(JSON.stringify(payload));
         });
     }
-//delete me
-    // private async saveForm(): Promise<void> {
-    //     return new Promise<void>((resolve, reject) => {
-    //         if (Xrm && Xrm.Page && Xrm.Page.data && Xrm.Page.data.save) {
-    //             Xrm.Page.data.save().then(
-    //                 () => resolve(),
-    //                 (error: any) => reject(error)
-    //             );
-    //         } else {
-    //             reject(new Error("Form context is not available."));
-    //         }
-    //     });
-    // }
 
     private async onButtonClick(entity: { id: string; name: string; nextStatusId: string; entityType: string; }): Promise<void> {
         try {
@@ -211,47 +194,6 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
                 this._triggerValidation = new Date().toISOString(); // Unique value to trigger change
                 this._notifyOutputChanged();
-
-                // const modal = this.createConfirmationModal(entity, nextStatusName);
-                // const closeButton = modal.querySelector(".btn-close");
-                // const cancelButton = modal.querySelector(".btn-secondary");
-                // const confirmButton = modal.querySelector(".btn-success");
-
-                // const closeModal = () => modal.remove();
-
-                // closeButton?.addEventListener('click', closeModal);
-                // cancelButton?.addEventListener('click', closeModal);
-
-                // confirmButton?.addEventListener('click', async () => {
-                //     try {
-                //         // 1. Create and set the lookup value
-                //         const lookupValue = this.createLookupValue(entity);
-                //         this._context.parameters.lookupField.raw = [lookupValue];
-                //         this._notifyOutputChanged();
-                //         // 2. Disable buttons and show processing state
-                //         cancelButton?.remove();
-                //         confirmButton.setAttribute("disabled", "true");
-                //         confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
-
-                //         // 3. Execute workflow if both workflowId and caseId are present
-                //         if (workflowId && caseId) {
-                //             await this.executeWorkflow(workflowId, caseId);
-                //         } else {
-                //             throw new Error("Workflow ID or Case ID is missing");
-                //         }
-
-                //         // 4. Close modal and show success message
-                //         closeModal();
-                //         this.showMessage("Action completed successfully.", "success");
-
-                //     } catch (error) {
-                //         console.error("Error processing action:", error);
-                //         this.showMessage("Failed to complete action", "danger");
-                //         closeModal();
-                //     }
-                // });
-
-                // document.body.appendChild(modal);
             }
 
         } catch (error) {
@@ -329,16 +271,13 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         if (context.updatedProperties.includes("lookupField")) {
             this.loadLookupData();
         }
-        
+
         // Handle validation result
         if (context.updatedProperties.includes("validationResult")) {
             this._validationResult = context.parameters.validationResult.raw || false;
             if (this._validationResult) {
                 // Proceed with showing the confirmation modal and executing the workflow
                 this.proceedAfterValidation();
-            } else {
-                // Display validation errors and halt the process
-                this.showMessage("Please correct the highlighted errors before proceeding.", "danger");
             }
         }
     }
