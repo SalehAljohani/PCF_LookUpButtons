@@ -8,7 +8,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     private _triggerValidation: string = "";
     private _validationResult: boolean = false;
     private clickState: { [key: string]: boolean } = {};
-    private selectedEntity: { id: string; name: string; nextStatusId: string; entityType: string } | null = null;
+    private selectedEntity: { id: string; name: string; nextStatusId: string; isReasonFieldRequired: boolean; entityType: string } | null = null;
     private pendingMessage: HTMLDivElement | null = null;
 
     public init(context: ComponentFramework.Context<IInputs>, notifyOutputChanged: () => void, state: ComponentFramework.Dictionary, container: HTMLDivElement): void 
@@ -38,7 +38,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 throw new Error("Status value not found");
             }
 
-            const query = `?$select=${targetedEntity}id,ntw_name,_ntw_nextstatusid_value&$filter=_ntw_statusid_value eq ${statusValue[0].id}`;
+            const query = `?$select=${targetedEntity}id,ntw_name,_ntw_nextstatusid_value,ntw_isreasonfieldrequired&$filter=_ntw_statusid_value eq ${statusValue[0].id}`;
             const response = await this._context.webAPI.retrieveMultipleRecords(targetedEntity, query, 40);
 
             this.removeMessage(loadingMessage);
@@ -52,6 +52,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 id: entity[`${targetedEntity}id`] || entity.id,
                 name: entity.ntw_name || "Unnamed Record",
                 nextStatusId: entity._ntw_nextstatusid_value,
+                isReasonFieldRequired: entity.ntw_isreasonfieldrequired,
                 entityType: targetedEntity
             }));
 
@@ -89,7 +90,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         }
     }
 
-    private displayButtons(entities: { id: string; name: string; nextStatusId: string; entityType: string }[]): void {
+    private displayButtons(entities: { id: string; name: string; nextStatusId: string; isReasonFieldRequired: boolean; entityType: string }[]): void {
         const existingMessage = this.pendingMessage;
 
         this._container.innerHTML = "";
@@ -179,7 +180,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         });
     }
 
-    private async onButtonClick(entity: { id: string; name: string; nextStatusId: string; entityType: string; }): Promise<void> {
+    private async onButtonClick(entity: { id: string; name: string; nextStatusId: string; isReasonFieldRequired: boolean; entityType: string; }): Promise<void> {
         try {
             const query = `?$select=ntw_name,_ntw_workflowid_value`;
             const response = await this._context.webAPI.retrieveRecord("ntw_status", entity.nextStatusId, query);
@@ -188,7 +189,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             const workflowId = response._ntw_workflowid_value;
             const caseId = this._context.parameters.caseId.formatted || "";
             const actionKey = entity.id;
-            if (!this.clickState[actionKey]) {
+            if (!this.clickState[actionKey] && entity.isReasonFieldRequired) {
                 this.pendingMessage = this.showMessage("Please fill in the required fields and click the action button again to proceed.", "info", false);
                 const lookupValue = this.createLookupValue(entity);
                 this._context.parameters.lookupField.raw = [lookupValue];
