@@ -96,6 +96,8 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     }
 
     private displayButtons(entities: { id: string; name: string; nextStatusId: string; entityType: string }[]): void {
+        const existingMessage = this.pendingMessage;
+
         this._container.innerHTML = "";
 
         if (!entities || entities.length === 0) {
@@ -111,6 +113,10 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             button.onclick = () => this.onButtonClick(entity);
             this._container.appendChild(button);
         });
+
+        if (existingMessage) {
+            this._container.appendChild(existingMessage);
+        }    
     }
 
     private createConfirmationModal(
