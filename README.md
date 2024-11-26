@@ -12,7 +12,6 @@ Transform Dynamics 365 lookup fields into interactive, visually appealing button
   - [Configuration](#configuration)
 - [How It Works](#how-it-works)
 - [Customization](#customization)
-- [License](#license)
 - [Contact](#contact)
 
 
