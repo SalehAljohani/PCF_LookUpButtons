@@ -262,7 +262,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                     this.selectedEntity = null;
                     setTimeout(() => {
                         location.reload();
-                    }, 6000);
+                    }, 5000);
 
                 } catch (error) {
                     console.error("Error processing action:", error);
