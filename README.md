@@ -2,6 +2,20 @@
 
 Transform Dynamics 365 lookup fields into interactive, visually appealing buttons for improved usability and streamlined business processes.
 
+
+## Table of Contents
+- [Overview](#overview)
+- [Features](#features)
+- [Setup and Usage](#setup-and-usage)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+- [How It Works](#how-it-works)
+- [Customization](#customization)
+- [License](#license)
+- [Contact](#contact)
+
+
 ## **Overview**
 
 This PowerApps Component Framework (PCF) component replaces traditional lookup fields with **responsive buttons** that:
@@ -24,16 +38,18 @@ Designed with flexibility, this version is tailored to specific business needs b
 - Dynamics 365 environment with PowerApps Component Framework enabled.
 - Admin access to deploy and test the solution.
 
+
 ### **Installation**
 1. Download the **latest release** from the [Releases page](https://github.com/SalehAljohani/PCF_LookUpButtons/releases).
 2. Extract the downloaded ZIP file.
 3. For **on-premises environments**, the solution is ready to use as-is.  
    For **cloud environments**:
+   - Extract the downloaded ZIP file.
    - Open the `Solution.xml` file located in the extracted folder.
    - Locate the `generatedBy="OnPremise"` attribute.
    - Replace `OnPremise` with `CrmLive` to enable compatibility with the cloud version.
    - Save the changes and re-zip the folder.
-4. Import the solution into your Dynamics 365 environment using the **Customization Tool**.
+4. Import the solution into your Dynamics 365 environment.
 
 ### **Configuration**
 - Bind the following fields in the component editor:
@@ -42,6 +58,7 @@ Designed with flexibility, this version is tailored to specific business needs b
   - **`caseId`**: Case ID for specific workflows (required).
   - **`triggerValidation`**: A bound field for triggering validation.
   - **`validationResult`**: An input field for validation results.
+
 
 ## **How It Works**
 1. The component fetches lookup options dynamically based on the current form's context.
@@ -59,9 +76,7 @@ This component can be customized to:
 - Adjust button styles and layouts to match specific themes.
 
 
-## **License**
 
-This project is licensed under the [MIT License](LICENSE).
 
 ## **Contact**
 
