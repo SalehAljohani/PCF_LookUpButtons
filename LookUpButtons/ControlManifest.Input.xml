@@ -18,11 +18,11 @@
       usage="bound" required="true" />
 
     <property name="triggerValidation" display-name-key="Trigger_Validation"
-      description-key="If you don't have a trigger validation field, create a new one and choose it here. It should be a SingleLine of Text."
+      description-key="If you dont have a trigger validation field, create a new one and choose it here. It should be a SingleLine of Text."
       usage="bound" of-type="SingleLine.Text" />
 
     <property name="validationResult" display-name-key="Validation_Result"
-      description-key="If you don't have a Validation result field, create a new one and choose it here. It should be a Two Option field."
+      description-key="If you dont have a Validation result field, create a new one and choose it here. It should be a Two Option field."
       usage="input"
       of-type="TwoOptions" />
 

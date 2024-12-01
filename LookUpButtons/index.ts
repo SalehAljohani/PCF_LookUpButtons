@@ -66,6 +66,11 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     }
 
     private showMessage(message: string, type: 'success' | 'info' | 'danger' | 'warning', autoRemove: boolean = true, duration: number = 5000): HTMLDivElement {
+        const existingMessage = this._container.querySelector(`.alert.alert-${type}`);
+        if (existingMessage) {
+            this.removeMessage(existingMessage as HTMLElement);
+        }
+
         const messageDiv = document.createElement("div");
         messageDiv.className = `alert alert-${type} w-100 mx-auto text-center`;
         messageDiv.innerText = message;
