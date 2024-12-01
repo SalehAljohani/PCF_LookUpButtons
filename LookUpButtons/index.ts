@@ -149,12 +149,12 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         };
     }
 
-    private executeWorkflow(workflowId: string, caseId: string): Promise<void> {
+    private executeWorkflow(workflowId: string, primaryId: string): Promise<void> {
         return new Promise((resolve, reject) => {
             const baseUrl = window.location.origin;
             const requestUrl = `${baseUrl}/api/data/v9.0/workflows(${workflowId})/Microsoft.Dynamics.CRM.ExecuteWorkflow`;
 
-            const payload = { EntityId: caseId };
+            const payload = { EntityId: primaryId };
 
             const req = new XMLHttpRequest();
             req.open("POST", requestUrl, true);
@@ -186,7 +186,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
             const nextStatusName = response.ntw_name || "Next Status";
             const workflowId = response._ntw_workflowid_value;
-            const caseId = this._context.parameters.caseId.formatted || "";
+            const primaryId = this._context.parameters.primaryId.formatted || "";
             const actionKey = entity.id;
 
             // Case 1: If there are no fields associated with the action
@@ -232,7 +232,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
             const nextStatusName = response.ntw_name || "Next Status";
             const workflowId = response._ntw_workflowid_value;
-            const caseId = this._context.parameters.caseId.formatted || "";
+            const primaryId = this._context.parameters.primaryId.formatted || "";
 
             const modal = this.createConfirmationModal(entity, nextStatusName);
             const closeButton = modal.querySelector(".btn-close");
@@ -250,8 +250,8 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                     confirmButton.setAttribute("disabled", "true");
                     confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
 
-                    if (workflowId && caseId) {
-                        await this.executeWorkflow(workflowId, caseId);
+                    if (workflowId && primaryId) {
+                        await this.executeWorkflow(workflowId, primaryId);
                     } else {
                         throw new Error("Workflow ID or Case ID is missing");
                     }
