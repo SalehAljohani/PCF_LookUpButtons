@@ -37,6 +37,11 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 throw new Error("Status value not found");
             }
 
+            if(statusValue[0].id === "c73f3461-cb8e-ef11-aa20-00155d00be1e") {
+                this.showMessage("This record is closed. No actions are available.", "info", false);
+                return;
+            }
+
             const query = `?$select=${targetedEntity}id,ntw_name,_ntw_nextstatusid_value,ntw_isreasonfieldrequired&$filter=_ntw_statusid_value eq ${statusValue[0].id}`;
             const response = await this._context.webAPI.retrieveMultipleRecords(targetedEntity, query, 40);
 
