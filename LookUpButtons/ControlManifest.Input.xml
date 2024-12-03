@@ -9,13 +9,13 @@
     <property name="lookupField" display-name-key="Lookup_Field"
       description-key="Field to bind lookup" of-type="Lookup.Simple" usage="bound" required="true" />
 
-    <property name="status" display-name-key="Status_Field"
-      description-key="Select the status lookup field" of-type="Lookup.Simple" usage="bound"
-      required="false" />
-
     <property name="primaryId" display-name-key="Case_ID"
       description-key="Select the field that contains the Case ID / Lead ID" of-type="SingleLine.Text"
       usage="bound" required="true" />
+
+    <property name="status" display-name-key="Status_Field"
+      description-key="Select the status lookup field" of-type="Lookup.Simple" usage="bound"
+      required="true" />
 
     <property name="triggerValidation" display-name-key="Trigger_Validation"
       description-key="If you dont have a trigger validation field, create a new one and choose it here. It should be a SingleLine of Text."

@@ -37,7 +37,8 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 throw new Error("Status value not found");
             }
 
-            if(statusValue[0].id === "c73f3461-cb8e-ef11-aa20-00155d00be1e") {
+            const CLOSED_STATUS_ID = "c73f3461-cb8e-ef11-aa20-00155d00be1e";
+            if(statusValue[0].id === CLOSED_STATUS_ID) {
                 this.showMessage("This record is closed. No actions are available.", "info", false);
                 return;
             }
@@ -62,10 +63,17 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
             this.displayButtons(entities);
         } catch (error) {
-            console.error("Technical error:", error);
-            this.removeMessage(loadingMessage);
-            this.showMessage("Unable to load options. Please try again later.", "warning", false);
+            const primaryId = this._context.parameters.primaryId.formatted || "";
+            if (!primaryId) {
+                this._container.innerHTML = "";
+                this.removeMessage(loadingMessage);            
+                return;
+            }else{
+                this.removeMessage(loadingMessage);
+                this.showMessage("Unable to load options. Please try again later.", "warning", false);
+            }
         } finally {
+            this.removeMessage(loadingMessage);
             this._isLoading = false;
         }
     }
@@ -270,9 +278,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                     this.showMessage("Action completed successfully.", "success");
                     this.clickState[entity.id] = false;
                     this.selectedEntity = null;
-                    setTimeout(() => {
-                        location.reload();
-                    }, 6000);
+                    location.reload();                    
 
                 } catch (error) {
                     console.error("Error processing action:", error);
