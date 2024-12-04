@@ -9,7 +9,7 @@
     <property name="lookupField" display-name-key="Lookup_Field"
       description-key="Field to bind lookup" of-type="Lookup.Simple" usage="bound" required="true" />
 
-    <property name="primaryId" display-name-key="Case_ID"
+    <property name="primaryId" display-name-key="primaryId"
       description-key="Select the field that contains the Case ID / Lead ID" of-type="SingleLine.Text"
       usage="bound" required="true" />
 
@@ -23,7 +23,7 @@
 
     <property name="validationResult" display-name-key="Validation_Result"
       description-key="If you dont have a Validation result field, create a new one and choose it here. It should be a Two Option field."
-      usage="input"
+      usage="bound"
       of-type="TwoOptions" />
 
     <resources>

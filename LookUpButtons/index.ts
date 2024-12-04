@@ -63,19 +63,16 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
             this.displayButtons(entities);
         } catch (error) {
-            const primaryId = this._context.parameters.primaryId.formatted || "";
-            if (!primaryId) {
-                this._container.innerHTML = "";
-                this.removeMessage(loadingMessage);            
-                return;
-            }else{
-                this.removeMessage(loadingMessage);
-                this.showMessage("Unable to load options. Please try again later.", "warning", false);
-            }
+            // console.error("Technical error:", error);
+            this.removeMessage(loadingMessage);
+            this.showMessage("Unable to load options. Please try again later.", "warning", false);
         } finally {
             this.removeMessage(loadingMessage);
             this._isLoading = false;
         }
+        // if(this.pendingMessage) {
+        //     this.pendingMessage;
+        // }
     }
 
     private showMessage(message: string, type: 'success' | 'info' | 'danger' | 'warning', autoRemove: boolean = true, duration: number = 5000): HTMLDivElement {
@@ -101,9 +98,9 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     private removeMessage(element: HTMLElement): void {
         if (element && element.parentNode === this._container) {
             this._container.removeChild(element);
-            if (this.pendingMessage === element) {
-                this.pendingMessage = null;
-            }
+            // if (this.pendingMessage === element) {
+            //     this.pendingMessage = null;
+            // }
         }
     }
 
@@ -184,10 +181,10 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             req.onreadystatechange = () => {
                 if (req.readyState === 4) {
                     if (req.status === 200 || req.status === 204) {
-                        console.log("Workflow executed successfully.");
+                        // console.log("Workflow executed successfully.");
                         resolve();
                     } else {
-                        console.error("Error executing workflow: " + req.responseText);
+                        // console.error("Error executing workflow: " + req.responseText);
                         reject(new Error("Workflow execution failed"));
                     }
                 }
@@ -199,23 +196,16 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
     private async onButtonClick(entity: { id: string; name: string; nextStatusId: string; isReasonFieldRequired: boolean; entityType: string; }): Promise<void> {
         try {
-            const query = `?$select=ntw_name,_ntw_workflowid_value`;
-            const response = await this._context.webAPI.retrieveRecord("ntw_status", entity.nextStatusId, query);
-
-            const nextStatusName = response.ntw_name || "Next Status";
-            const workflowId = response._ntw_workflowid_value;
-            const primaryId = this._context.parameters.primaryId.formatted || "";
             const actionKey = entity.id;
 
             // Case 1: If there are no fields associated with the action
             if (!entity.isReasonFieldRequired) {
-                // Directly process the action
                 const lookupValue = this.createLookupValue(entity);
                 this._context.parameters.lookupField.raw = [lookupValue];
-                this._triggerValidation = new Date().toISOString(); // Set a unique trigger for validation
+                this._triggerValidation = new Date().toISOString();
                 this._notifyOutputChanged();
                 this.selectedEntity = entity;
-                return; // Skip further logic
+                return;
             }
 
             // Case 2: If the action has fields associated with it
@@ -223,6 +213,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 this.pendingMessage = this.showMessage("Please fill in the required fields and click the action button again to proceed.", "info", false);
                 const lookupValue = this.createLookupValue(entity);
                 this._context.parameters.lookupField.raw = [lookupValue];
+                this._context.parameters.validationResult.raw = false;    
                 this._notifyOutputChanged();
                 this.clickState[actionKey] = true;
                 this.selectedEntity = entity;
@@ -232,7 +223,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 this._notifyOutputChanged();
             }
         } catch (error) {
-            console.error("Error retrieving next status:", error);
+            // console.error("Error retrieving next status:", error);
             this.showMessage("Failed to load next status details", "danger", false);
         }
     }
@@ -257,7 +248,14 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             const cancelButton = modal.querySelector(".btn-secondary");
             const confirmButton = modal.querySelector(".btn-success");
 
-            const closeModal = () => modal.remove();
+            const closeModal = () => {
+                modal.remove();
+                this.clickState[entity.id] = false;
+                this.selectedEntity = null;
+                this._validationResult = false;
+                this._triggerValidation = new Date().toISOString();
+                this._notifyOutputChanged();
+            };
 
             closeButton?.addEventListener('click', closeModal);
             cancelButton?.addEventListener('click', closeModal);
@@ -281,7 +279,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                     location.reload();                    
 
                 } catch (error) {
-                    console.error("Error processing action:", error);
+                    // console.error("Error processing action:", error);
                     this.showMessage("Failed to complete action", "danger", false);
                     closeModal();
                 }
@@ -290,7 +288,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             document.body.appendChild(modal);
 
         } catch (error) {
-            console.error("Error after validation:", error);
+            // console.error("Error after validation:", error);
             this.showMessage("An error occurred after validation.", "danger", false);
         }
     }
@@ -312,7 +310,8 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     public getOutputs(): IOutputs {
         return {
             lookupField: this._context.parameters.lookupField.raw,
-            triggerValidation: this._triggerValidation
+            triggerValidation: this._triggerValidation,
+            validationResult: this._validationResult
         };
     }
 
