@@ -253,7 +253,6 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 this.clickState[entity.id] = false;
                 this.selectedEntity = null;
                 this._validationResult = false;
-                this._triggerValidation = new Date().toISOString();
                 this._notifyOutputChanged();
             };
 
