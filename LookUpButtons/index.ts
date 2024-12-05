@@ -31,7 +31,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
         // Create button container
         this._container = document.createElement("div");
-        this._container.className = "card-body bg-body-tertiary d-flex flex-wrap gap-3 p-4 justify-content-center";
+        this._container.className = "card-body bg-body-tertiary d-flex flex-wrap gap-3 p-4 justify-content-center rounded-bottom";
 
         // Build DOM hierarchy
         this._mainContainer.appendChild(headerDiv);
