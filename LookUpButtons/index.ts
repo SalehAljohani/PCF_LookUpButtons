@@ -18,20 +18,20 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
         // Create main container with card styling
         this._mainContainer = document.createElement("div");
-        this._mainContainer.className = "card border border-secondary shadow-lg";
+        this._mainContainer.className = "card";
 
         // Create header
         const headerDiv = document.createElement("div");
-        headerDiv.className = "card-header bg-info text-white";
+        headerDiv.className = "card-header bg-info";
 
-        const headerText = document.createElement("h3");
-        headerText.className = "mb-0 text-center";
-        headerText.textContent = "Actions";
+        const headerText = document.createElement("p");
+        headerText.className = "my-auto fw-bold text-center fs-3";
+        headerText.textContent = "ACTIONS";
         headerDiv.appendChild(headerText);
 
         // Create button container
         this._container = document.createElement("div");
-        this._container.className = "card-body bg-body-tertiary d-flex flex-wrap gap-3 p-4 justify-content-center rounded-bottom";
+        this._container.className = "card-body bg-body-tertiary d-flex flex-wrap gap-3 justify-content-center rounded-bottom";
 
         // Build DOM hierarchy
         this._mainContainer.appendChild(headerDiv);
@@ -142,7 +142,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         entities.forEach((entity) => {
             const button = document.createElement("button");
             button.type = "button";
-            button.className = "btn btn-outline-success m-1";
+            button.className = "btn btn-success m-1";
             button.innerText = entity.name;
             button.onclick = () => this.onButtonClick(entity);
             this._container.appendChild(button);
