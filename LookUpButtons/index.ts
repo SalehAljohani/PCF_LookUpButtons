@@ -25,7 +25,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         headerDiv.className = "card-header bg-info";
 
         const headerText = document.createElement("p");
-        headerText.className = "my-auto fw-bold text-center fs-3";
+        headerText.className = "my-auto fw-bold text-center fs-4";
         headerText.textContent = "ACTIONS";
         headerDiv.appendChild(headerText);
 
