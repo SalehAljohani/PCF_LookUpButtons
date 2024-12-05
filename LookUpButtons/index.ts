@@ -22,10 +22,10 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
         // Create header
         const headerDiv = document.createElement("div");
-        headerDiv.className = "card-header bg-info";
+        headerDiv.className = "card-header";
 
-        const headerText = document.createElement("p");
-        headerText.className = "my-auto fw-bold text-center fs-4";
+        const headerText = document.createElement("h3");
+        headerText.className = "my-auto fw-bolder text-center";
         headerText.textContent = "ACTIONS";
         headerDiv.appendChild(headerText);
 
@@ -59,7 +59,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             }
 
             const CLOSED_STATUS_ID = "c73f3461-cb8e-ef11-aa20-00155d00be1e";
-            if(statusValue[0].id === CLOSED_STATUS_ID) {
+            if (statusValue[0].id === CLOSED_STATUS_ID) {
                 this.showMessage("This record is closed. No actions are available.", "info", false);
                 return;
             }
@@ -143,6 +143,8 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             const button = document.createElement("button");
             button.type = "button";
             button.className = "btn btn-success m-1";
+            button.style.flex = "1";
+            button.style.margin = "0.5rem";
             button.innerText = entity.name;
             button.onclick = () => this.onButtonClick(entity);
             this._container.appendChild(button);
