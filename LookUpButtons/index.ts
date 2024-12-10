@@ -15,6 +15,8 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     public init(context: ComponentFramework.Context<IInputs>, notifyOutputChanged: () => void, state: ComponentFramework.Dictionary, container: HTMLDivElement): void {
         this._context = context;
         this._notifyOutputChanged = notifyOutputChanged;
+        
+        container.innerHTML = "";
 
         // Create main container with card styling
         this._mainContainer = document.createElement("div");
@@ -37,6 +39,8 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         this._mainContainer.appendChild(headerDiv);
         this._mainContainer.appendChild(this._container);
         container.appendChild(this._mainContainer);
+        container.style.padding = "0";
+        container.style.width = "100%";
 
         this.loadLookupData();
     }
