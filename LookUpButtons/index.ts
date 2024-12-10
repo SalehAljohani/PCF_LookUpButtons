@@ -1,6 +1,7 @@
 import { IInputs, IOutputs } from "./generated/ManifestTypes";
 
 export class ButtonLookup implements ComponentFramework.StandardControl<IInputs, IOutputs> {
+    private _mainContainer: HTMLDivElement;
     private _container: HTMLDivElement;
     private _context: ComponentFramework.Context<IInputs>;
     private _notifyOutputChanged: () => void;
@@ -14,9 +15,33 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     public init(context: ComponentFramework.Context<IInputs>, notifyOutputChanged: () => void, state: ComponentFramework.Dictionary, container: HTMLDivElement): void {
         this._context = context;
         this._notifyOutputChanged = notifyOutputChanged;
+        
+        container.innerHTML = "";
+
+        // Create main container with card styling
+        this._mainContainer = document.createElement("div");
+        this._mainContainer.className = "card";
+
+        // Create header
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "card-header";
+
+        const headerText = document.createElement("h3");
+        headerText.className = "my-auto fw-bolder text-center";
+        headerText.textContent = "ACTIONS";
+        headerDiv.appendChild(headerText);
+
+        // Create button container
         this._container = document.createElement("div");
-        this._container.className = "d-flex flex-wrap gap-2";
-        container.appendChild(this._container);
+        this._container.className = "card-body bg-body-tertiary d-flex flex-wrap gap-3 justify-content-center rounded-bottom";
+
+        // Build DOM hierarchy
+        this._mainContainer.appendChild(headerDiv);
+        this._mainContainer.appendChild(this._container);
+        container.appendChild(this._mainContainer);
+        container.style.padding = "0";
+        container.style.width = "100%";
+
         this.loadLookupData();
     }
 
@@ -38,7 +63,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             }
 
             const CLOSED_STATUS_ID = "c73f3461-cb8e-ef11-aa20-00155d00be1e";
-            if(statusValue[0].id === CLOSED_STATUS_ID) {
+            if (statusValue[0].id === CLOSED_STATUS_ID) {
                 this.showMessage("This record is closed. No actions are available.", "info", false);
                 return;
             }
@@ -82,8 +107,12 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         }
 
         const messageDiv = document.createElement("div");
-        messageDiv.className = `alert alert-${type} w-100 mx-auto text-center`;
-        messageDiv.innerText = message;
+        messageDiv.className = `alert alert-${type} w-100 text-center mt-3`;
+
+        const messageText = document.createElement("span");
+        messageText.textContent = message;
+        messageDiv.appendChild(messageText);
+
         this._container.appendChild(messageDiv);
 
         if (autoRemove) {
@@ -117,7 +146,9 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         entities.forEach((entity) => {
             const button = document.createElement("button");
             button.type = "button";
-            button.className = "btn btn-outline-success m-1";
+            button.className = "btn btn-success m-1";
+            button.style.flex = "1";
+            button.style.margin = "0.5rem";
             button.innerText = entity.name;
             button.onclick = () => this.onButtonClick(entity);
             this._container.appendChild(button);
@@ -134,24 +165,75 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         modal.style.display = "block";
         modal.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
 
-        modal.innerHTML = `
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title"><strong>Confirm Action</strong></h5>
-                        <button type="button" class="btn-close" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Are you sure you want to select <span class="fw-bold text-uppercase">${entity.name}</span>?</p>
-                        <p>This will move the status to: <span class="fw-bold text-primary">${nextStatusName}</span></p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary">Cancel</button>
-                        <button type="button" class="btn btn-success">Confirm</button>
-                    </div>
-                </div>
-            </div>
-        `;
+        const modalDialog = document.createElement("div");
+        modalDialog.className = "modal-dialog";
+
+        const modalContent = document.createElement("div");
+        modalContent.className = "modal-content";
+
+        // Header
+        const modalHeader = document.createElement("div");
+        modalHeader.className = "modal-header";
+
+        const modalTitle = document.createElement("h5");
+        modalTitle.className = "modal-title";
+        const titleStrong = document.createElement("strong");
+        titleStrong.textContent = "Confirm Action";
+        modalTitle.appendChild(titleStrong);
+
+        const closeButton = document.createElement("button");
+        closeButton.type = "button";
+        closeButton.className = "btn-close";
+        closeButton.setAttribute("aria-label", "Close");
+
+        modalHeader.appendChild(modalTitle);
+        modalHeader.appendChild(closeButton);
+
+        // Body
+        const modalBody = document.createElement("div");
+        modalBody.className = "modal-body";
+
+        const actionText = document.createElement("p");
+        const actionName = document.createElement("span");
+        actionName.className = "fw-bold text-uppercase";
+        actionName.textContent = entity.name;
+        actionText.textContent = "Are you sure you want to select ";
+        actionText.appendChild(actionName);
+        actionText.appendChild(document.createTextNode("?"));
+
+        const statusText = document.createElement("p");
+        const statusName = document.createElement("span");
+        statusName.className = "fw-bold text-primary";
+        statusName.textContent = nextStatusName;
+        statusText.textContent = "This will move the status to: ";
+        statusText.appendChild(statusName);
+
+        modalBody.appendChild(actionText);
+        modalBody.appendChild(statusText);
+
+        // Footer
+        const modalFooter = document.createElement("div");
+        modalFooter.className = "modal-footer";
+
+        const cancelButton = document.createElement("button");
+        cancelButton.type = "button";
+        cancelButton.className = "btn btn-secondary";
+        cancelButton.textContent = "Cancel";
+
+        const confirmButton = document.createElement("button");
+        confirmButton.type = "button";
+        confirmButton.className = "btn btn-success";
+        confirmButton.textContent = "Confirm";
+
+        modalFooter.appendChild(cancelButton);
+        modalFooter.appendChild(confirmButton);
+
+        // Assemble modal
+        modalContent.appendChild(modalHeader);
+        modalContent.appendChild(modalBody);
+        modalContent.appendChild(modalFooter);
+        modalDialog.appendChild(modalContent);
+        modal.appendChild(modalDialog);
 
         return modal;
     }
@@ -180,13 +262,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
 
             req.onreadystatechange = () => {
                 if (req.readyState === 4) {
-                    if (req.status === 200 || req.status === 204) {
-                        // console.log("Workflow executed successfully.");
-                        resolve();
-                    } else {
-                        // console.error("Error executing workflow: " + req.responseText);
-                        reject(new Error("Workflow execution failed"));
-                    }
+                    req.status === 200 || req.status === 204 ? resolve() : reject(new Error("Workflow execution failed"));
                 }
             };
 
@@ -213,7 +289,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 this.pendingMessage = this.showMessage("Please fill in the required fields and click the action button again to proceed.", "info", false);
                 const lookupValue = this.createLookupValue(entity);
                 this._context.parameters.lookupField.raw = [lookupValue];
-                this._context.parameters.validationResult.raw = false;    
+                this._context.parameters.validationResult.raw = false;
                 this._notifyOutputChanged();
                 this.clickState[actionKey] = true;
                 this.selectedEntity = entity;
@@ -264,7 +340,15 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 try {
                     cancelButton?.remove();
                     confirmButton.setAttribute("disabled", "true");
-                    confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+
+                    const spinner = document.createElement("span");
+                    spinner.className = "spinner-border spinner-border-sm";
+                    spinner.setAttribute("role", "status");
+                    spinner.setAttribute("aria-hidden", "true");
+
+                    confirmButton.innerHTML = "";
+                    confirmButton.appendChild(spinner);
+                    confirmButton.appendChild(document.createTextNode(" Processing..."));
 
                     if (workflowId && primaryId) {
                         await this.executeWorkflow(workflowId, primaryId);
@@ -276,7 +360,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                     this.showMessage("Action completed successfully.", "success");
                     this.clickState[entity.id] = false;
                     this.selectedEntity = null;
-                    location.reload();                    
+                    location.reload();
 
                 } catch (error) {
                     // console.error("Error processing action:", error);
@@ -316,6 +400,16 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     }
 
     public destroy(): void {
-        this._container.innerHTML = "";
+        // Clean up the containers
+        if (this._container) {
+            while (this._container.firstChild) {
+                this._container.removeChild(this._container.firstChild);
+            }
+        }
+        if (this._mainContainer) {
+            while (this._mainContainer.firstChild) {
+                this._mainContainer.removeChild(this._mainContainer.firstChild);
+            }
+        }
     }
 }
