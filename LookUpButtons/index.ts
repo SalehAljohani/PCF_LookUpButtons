@@ -363,7 +363,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                     location.reload();
 
                 } catch (error) {
-                    // console.error("Error processing action:", error);
+                    console.error("Error processing action:", error);
                     this.showMessage("Failed to complete action", "danger", false);
                     closeModal();
                 }
