@@ -71,14 +71,7 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 this.showMessage("No actions available for the current status", "info", false);
                 return;
             }
-    
-            // Check for closed status
-            const CLOSED_STATUS_ID = "c73f3461-cb8e-ef11-aa20-00155d00be1e";
-            if (statusValue[0].id === CLOSED_STATUS_ID) {
-                this.showMessage("This record is closed. No actions are available.", "info", false);
-                return;
-            }
-    
+        
             // Build query with error handling
             try {
                 const query = `?$select=${targetedEntity}id,ntw_name,_ntw_nextstatusid_value,ntw_isreasonfieldrequired&$filter=_ntw_statusid_value eq ${statusValue[0].id}`;
