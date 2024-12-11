@@ -12,6 +12,19 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     private selectedEntity: { id: string; name: string; nextStatusId: string; isReasonFieldRequired: boolean; entityType: string } | null = null;
     private pendingMessage: HTMLDivElement | null = null;
 
+    // Enhanced initialization tracking
+    private _initializationComplete: boolean = false;
+    private _initializationAttempts: number = 0;
+    private readonly MAX_INIT_ATTEMPTS: number = 3;
+    private _currentLoadingMessage: HTMLDivElement | null = null;
+
+    /**
+     * Initialize the control instance
+     * @param context The entire property bag available to control via Context Object
+     * @param notifyOutputChanged A callback method to alert the framework that the control has new outputs ready to be retrieved asynchronously
+     * @param state A piece of data that persists in one session for a single user
+     * @param container The HTML Element container to render the control
+     */
     public init(context: ComponentFramework.Context<IInputs>, notifyOutputChanged: () => void, state: ComponentFramework.Dictionary, container: HTMLDivElement): void {
         this._context = context;
         this._notifyOutputChanged = notifyOutputChanged;
@@ -42,79 +55,24 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         container.style.padding = "0";
         container.style.width = "100%";
 
+        // Initialize component
+        this.setInitializationComplete(false);
         this.loadLookupData();
     }
 
-    private async loadLookupData(): Promise<void> {
-        const loadingMessage = this.showMessage("Loading...", "info");
-        try {
-            if (this._isLoading) return;
-            this._isLoading = true;
-    
-            // Check if context and parameters are properly initialized
-            if (!this._context || !this._context.parameters) {
-                throw new Error("Context not properly initialized");
-            }
-    
-            const targetedEntity = this._context.parameters.lookupField.getTargetEntityType();
-            if (!targetedEntity) {
-                console.warn("Target entity type not found");
-                this.showMessage("No options available for this status", "info", false);
-                return;
-            }
-    
-            // Enhanced status value check
-            const statusValue = this._context.parameters.status.raw;
-            if (!statusValue || !statusValue[0]) {
-                console.warn("Status value not found in parameters");
-                // Instead of throwing error, show a more user-friendly message
-                this.showMessage("No actions available for the current status", "info", false);
-                return;
-            }
-        
-            // Build query with error handling
-            try {
-                const query = `?$select=${targetedEntity}id,ntw_name,_ntw_nextstatusid_value,ntw_isreasonfieldrequired&$filter=_ntw_statusid_value eq ${statusValue[0].id}`;
-                const response = await this._context.webAPI.retrieveMultipleRecords(targetedEntity, query, 40);
-    
-                this.removeMessage(loadingMessage);
-    
-                if (!response) {
-                    this.showMessage("No response received from the server", "warning", false);
-                    return;
-                }
-    
-                if (!response.entities || response.entities.length === 0) {
-                    this.showMessage("No options available for this status", "info", false);
-                    return;
-                }
-    
-                const entities = response.entities.map(entity => ({
-                    id: entity[`${targetedEntity}id`] || entity.id,
-                    name: entity.ntw_name || "Unnamed Record",
-                    nextStatusId: entity._ntw_nextstatusid_value,
-                    isReasonFieldRequired: entity.ntw_isreasonfieldrequired,
-                    entityType: targetedEntity
-                }));
-    
-                this.displayButtons(entities);
-    
-            } catch (queryError) {
-                console.warn("Error in query execution:", queryError);
-                throw new Error("Failed to retrieve status options");
-            }
-    
-        } catch (error) {
-            this.removeMessage(loadingMessage);
-            console.warn("Error in loadLookupData:", error);
-            this.showMessage("Unable to load options. Please try again later.", "warning", false);
-        } finally {
-            this.removeMessage(loadingMessage);
-            this._isLoading = false;
+    private setInitializationComplete(complete: boolean): void {
+        this._initializationComplete = complete;
+        if (complete) {
+            this._initializationAttempts = 0;
         }
     }
 
+    private shouldAttemptInitialization(): boolean {
+        return !this._initializationComplete && this._initializationAttempts < this.MAX_INIT_ATTEMPTS;
+    }
+
     private showMessage(message: string, type: 'success' | 'info' | 'danger' | 'warning', autoRemove: boolean = true, duration: number = 5000): HTMLDivElement {
+        // Remove existing message of the same type
         const existingMessage = this._container.querySelector(`.alert.alert-${type}`);
         if (existingMessage) {
             this.removeMessage(existingMessage as HTMLElement);
@@ -141,15 +99,104 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     private removeMessage(element: HTMLElement): void {
         if (element && element.parentNode === this._container) {
             this._container.removeChild(element);
-            // if (this.pendingMessage === element) {
-            //     this.pendingMessage = null;
-            // }
+        }
+    }
+
+    private async loadLookupData(): Promise<void> {
+        try {
+            if (this._isLoading) return;
+            this._isLoading = true;
+
+            // Show or update loading message
+            if (!this._currentLoadingMessage) {
+                this._currentLoadingMessage = this.showMessage("Loading...", "info", false);
+            }
+
+            // Increment attempt counter
+            this._initializationAttempts++;
+
+            // Check context and parameters
+            if (!this._context || !this._context.parameters) {
+                if (this.shouldAttemptInitialization()) {
+                    this._isLoading = false;
+                    return;
+                }
+                throw new Error("Context not properly initialized");
+            }
+
+            const targetedEntity = this._context.parameters.lookupField.getTargetEntityType();
+            if (!targetedEntity) {
+                if (this.shouldAttemptInitialization()) {
+                    this._isLoading = false;
+                    return;
+                }
+                console.warn("Target entity type not found");
+                this.showMessage("No options available", "info", false);
+                return;
+            }
+
+            const statusValue = this._context.parameters.status.raw;
+            if (!statusValue || !statusValue[0]) {
+                if (this.shouldAttemptInitialization()) {
+                    this._isLoading = false;
+                    return;
+                }
+                console.warn("Status value not found in parameters");
+                this.showMessage("No actions available for the current status", "info", false);
+                return;
+            }
+
+            try {
+                const query = `?$select=${targetedEntity}id,ntw_name,_ntw_nextstatusid_value,ntw_isreasonfieldrequired&$filter=_ntw_statusid_value eq ${statusValue[0].id}`;
+                const response = await this._context.webAPI.retrieveMultipleRecords(targetedEntity, query, 40);
+
+                // Clear loading message
+                if (this._currentLoadingMessage) {
+                    this.removeMessage(this._currentLoadingMessage);
+                    this._currentLoadingMessage = null;
+                }
+
+                if (!response) {
+                    this.showMessage("No response received from the server", "warning", false);
+                    return;
+                }
+
+                if (!response.entities || response.entities.length === 0) {
+                    this.showMessage("No options available", "info", false);
+                    return;
+                }
+
+                const entities = response.entities.map(entity => ({
+                    id: entity[`${targetedEntity}id`] || entity.id,
+                    name: entity.ntw_name || "Unnamed Record",
+                    nextStatusId: entity._ntw_nextstatusid_value,
+                    isReasonFieldRequired: entity.ntw_isreasonfieldrequired,
+                    entityType: targetedEntity
+                }));
+
+                this.setInitializationComplete(true);
+                this.displayButtons(entities);
+
+            } catch (queryError) {
+                console.error("Error in query execution:", queryError);
+                throw new Error("Failed to retrieve status options");
+            }
+
+        } catch (error) {
+            this.setInitializationComplete(true);
+            if (this._currentLoadingMessage) {
+                this.removeMessage(this._currentLoadingMessage);
+                this._currentLoadingMessage = null;
+            }
+            console.error("Error in loadLookupData:", error);
+            this.showMessage("Unable to load options. Please try again later.", "warning", false);
+        } finally {
+            this._isLoading = false;
         }
     }
 
     private displayButtons(entities: { id: string; name: string; nextStatusId: string; isReasonFieldRequired: boolean; entityType: string }[]): void {
-        const existingMessage = this.pendingMessage;
-
+        // Clear existing content
         this._container.innerHTML = "";
 
         if (!entities || entities.length === 0) {
@@ -168,8 +215,8 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             this._container.appendChild(button);
         });
 
-        if (existingMessage) {
-            this._container.appendChild(existingMessage);
+        if (this.pendingMessage) {
+            this._container.appendChild(this.pendingMessage);
         }
     }
 
@@ -284,11 +331,10 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         });
     }
 
-    private async onButtonClick(entity: { id: string; name: string; nextStatusId: string; isReasonFieldRequired: boolean; entityType: string; }): Promise<void> {
+    private async onButtonClick(entity: { id: string; name: string; nextStatusId: string; isReasonFieldRequired: boolean; entityType: string }): Promise<void> {
         try {
             const actionKey = entity.id;
 
-            // Case 1: If there are no fields associated with the action
             if (!entity.isReasonFieldRequired) {
                 const lookupValue = this.createLookupValue(entity);
                 this._context.parameters.lookupField.raw = [lookupValue];
@@ -298,7 +344,6 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 return;
             }
 
-            // Case 2: If the action has fields associated with it
             if (!this.clickState[actionKey]) {
                 this.pendingMessage = this.showMessage("Please fill in the required fields and click the action button again to proceed.", "info", false);
                 const lookupValue = this.createLookupValue(entity);
@@ -308,13 +353,15 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
                 this.clickState[actionKey] = true;
                 this.selectedEntity = entity;
             } else {
-                if (this.pendingMessage) this.removeMessage(this.pendingMessage);
+                if (this.pendingMessage) {
+                    this.removeMessage(this.pendingMessage);
+                }
                 this._triggerValidation = new Date().toISOString();
                 this._notifyOutputChanged();
             }
         } catch (error) {
-            // console.error("Error retrieving next status:", error);
-            this.showMessage("Failed to load next status details", "danger", false);
+            console.error("Error in button click handler:", error);
+            this.showMessage("Failed to process action", "danger", false);
         }
     }
 
@@ -386,14 +433,23 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
             document.body.appendChild(modal);
 
         } catch (error) {
-            // console.error("Error after validation:", error);
+            console.error("Error after validation:", error);
             this.showMessage("An error occurred after validation.", "danger", false);
         }
     }
 
     public updateView(context: ComponentFramework.Context<IInputs>): void {
         this._context = context;
+
+        // Handle initialization retries
+        if (!this._initializationComplete && !this._isLoading) {
+            this.loadLookupData();
+            return;
+        }
+
+        // Handle normal updates
         if (context.updatedProperties.includes("lookupField")) {
+            this.setInitializationComplete(false);
             this.loadLookupData();
         }
 
@@ -414,12 +470,17 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
     }
 
     public destroy(): void {
-        // Clean up the containers
+        if (this._currentLoadingMessage) {
+            this.removeMessage(this._currentLoadingMessage);
+            this._currentLoadingMessage = null;
+        }
+        
         if (this._container) {
             while (this._container.firstChild) {
                 this._container.removeChild(this._container.firstChild);
             }
         }
+        
         if (this._mainContainer) {
             while (this._mainContainer.firstChild) {
                 this._mainContainer.removeChild(this._mainContainer.firstChild);
