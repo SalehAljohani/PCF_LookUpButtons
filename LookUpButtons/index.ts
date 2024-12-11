@@ -50,54 +50,75 @@ export class ButtonLookup implements ComponentFramework.StandardControl<IInputs,
         try {
             if (this._isLoading) return;
             this._isLoading = true;
-
+    
+            // Check if context and parameters are properly initialized
+            if (!this._context || !this._context.parameters) {
+                throw new Error("Context not properly initialized");
+            }
+    
             const targetedEntity = this._context.parameters.lookupField.getTargetEntityType();
             if (!targetedEntity) {
-                throw new Error("Target entity type not found");
+                console.warn("Target entity type not found");
+                this.showMessage("No options available for this status", "info", false);
+                return;
             }
-
-            // Use status property from PCF context
+    
+            // Enhanced status value check
             const statusValue = this._context.parameters.status.raw;
             if (!statusValue || !statusValue[0]) {
-                throw new Error("Status value not found");
+                console.warn("Status value not found in parameters");
+                // Instead of throwing error, show a more user-friendly message
+                this.showMessage("No actions available for the current status", "info", false);
+                return;
             }
-
+    
+            // Check for closed status
             const CLOSED_STATUS_ID = "c73f3461-cb8e-ef11-aa20-00155d00be1e";
             if (statusValue[0].id === CLOSED_STATUS_ID) {
                 this.showMessage("This record is closed. No actions are available.", "info", false);
                 return;
             }
-
-            const query = `?$select=${targetedEntity}id,ntw_name,_ntw_nextstatusid_value,ntw_isreasonfieldrequired&$filter=_ntw_statusid_value eq ${statusValue[0].id}`;
-            const response = await this._context.webAPI.retrieveMultipleRecords(targetedEntity, query, 40);
-
-            this.removeMessage(loadingMessage);
-
-            if (!response?.entities?.length) {
-                this.showMessage("No options available", "info", false);
-                return;
+    
+            // Build query with error handling
+            try {
+                const query = `?$select=${targetedEntity}id,ntw_name,_ntw_nextstatusid_value,ntw_isreasonfieldrequired&$filter=_ntw_statusid_value eq ${statusValue[0].id}`;
+                const response = await this._context.webAPI.retrieveMultipleRecords(targetedEntity, query, 40);
+    
+                this.removeMessage(loadingMessage);
+    
+                if (!response) {
+                    this.showMessage("No response received from the server", "warning", false);
+                    return;
+                }
+    
+                if (!response.entities || response.entities.length === 0) {
+                    this.showMessage("No options available for this status", "info", false);
+                    return;
+                }
+    
+                const entities = response.entities.map(entity => ({
+                    id: entity[`${targetedEntity}id`] || entity.id,
+                    name: entity.ntw_name || "Unnamed Record",
+                    nextStatusId: entity._ntw_nextstatusid_value,
+                    isReasonFieldRequired: entity.ntw_isreasonfieldrequired,
+                    entityType: targetedEntity
+                }));
+    
+                this.displayButtons(entities);
+    
+            } catch (queryError) {
+                console.warn("Error in query execution:", queryError);
+                throw new Error("Failed to retrieve status options");
             }
-
-            const entities = response.entities.map(entity => ({
-                id: entity[`${targetedEntity}id`] || entity.id,
-                name: entity.ntw_name || "Unnamed Record",
-                nextStatusId: entity._ntw_nextstatusid_value,
-                isReasonFieldRequired: entity.ntw_isreasonfieldrequired,
-                entityType: targetedEntity
-            }));
-
-            this.displayButtons(entities);
+    
         } catch (error) {
-            // console.error("Technical error:", error);
             this.removeMessage(loadingMessage);
+            console.warn("Error in loadLookupData:", error);
             this.showMessage("Unable to load options. Please try again later.", "warning", false);
         } finally {
             this.removeMessage(loadingMessage);
             this._isLoading = false;
         }
-        // if(this.pendingMessage) {
-        //     this.pendingMessage;
-        // }
     }
 
     private showMessage(message: string, type: 'success' | 'info' | 'danger' | 'warning', autoRemove: boolean = true, duration: number = 5000): HTMLDivElement {
